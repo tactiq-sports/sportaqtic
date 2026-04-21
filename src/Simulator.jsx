@@ -15,20 +15,27 @@ const GROUPS = {
   L: ["England", "Croatia", "Ghana", "Panama"],
 };
 
-const FLAGS = {
-  "Mexico": "🇲🇽", "South Africa": "🇿🇦", "South Korea": "🇰🇷", "Czechia": "🇨🇿",
-  "Canada": "🇨🇦", "Bosnia and Herzegovina": "🇧🇦", "Qatar": "🇶🇦", "Switzerland": "🇨🇭",
-  "Brazil": "🇧🇷", "Morocco": "🇲🇦", "Haiti": "🇭🇹", "Scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-  "USA": "🇺🇸", "Paraguay": "🇵🇾", "Australia": "🇦🇺", "Türkiye": "🇹🇷",
-  "Germany": "🇩🇪", "Curaçao": "🇨🇼", "Ivory Coast": "🇨🇮", "Ecuador": "🇪🇨",
-  "Netherlands": "🇳🇱", "Japan": "🇯🇵", "Sweden": "🇸🇪", "Tunisia": "🇹🇳",
-  "Belgium": "🇧🇪", "Egypt": "🇪🇬", "Iran": "🇮🇷", "New Zealand": "🇳🇿",
-  "Spain": "🇪🇸", "Cape Verde": "🇨🇻", "Saudi Arabia": "🇸🇦", "Uruguay": "🇺🇾",
-  "France": "🇫🇷", "Senegal": "🇸🇳", "Iraq": "🇮🇶", "Norway": "🇳🇴",
-  "Argentina": "🇦🇷", "Algeria": "🇩🇿", "Austria": "🇦🇹", "Jordan": "🇯🇴",
-  "Portugal": "🇵🇹", "DR Congo": "🇨🇩", "Uzbekistan": "🇺🇿", "Colombia": "🇨🇴",
-  "England": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "Croatia": "🇭🇷", "Ghana": "🇬🇭", "Panama": "🇵🇦",
+const FLAG_CODES = {
+  "Mexico": "mx", "South Africa": "za", "South Korea": "kr", "Czechia": "cz",
+  "Canada": "ca", "Bosnia and Herzegovina": "ba", "Qatar": "qa", "Switzerland": "ch",
+  "Brazil": "br", "Morocco": "ma", "Haiti": "ht", "Scotland": "gb-sct",
+  "USA": "us", "Paraguay": "py", "Australia": "au", "Türkiye": "tr",
+  "Germany": "de", "Curaçao": "cw", "Ivory Coast": "ci", "Ecuador": "ec",
+  "Netherlands": "nl", "Japan": "jp", "Sweden": "se", "Tunisia": "tn",
+  "Belgium": "be", "Egypt": "eg", "Iran": "ir", "New Zealand": "nz",
+  "Spain": "es", "Cape Verde": "cv", "Saudi Arabia": "sa", "Uruguay": "uy",
+  "France": "fr", "Senegal": "sn", "Iraq": "iq", "Norway": "no",
+  "Argentina": "ar", "Algeria": "dz", "Austria": "at", "Jordan": "jo",
+  "Portugal": "pt", "DR Congo": "cd", "Uzbekistan": "uz", "Colombia": "co",
+  "England": "gb-eng", "Croatia": "hr", "Ghana": "gh", "Panama": "pa",
 };
+
+function Flag({ team, size = 16 }) {
+  const code = FLAG_CODES[team];
+  if (!code) return null;
+  const w = Math.round(size * 1.5);
+  return <img src={`https://flagcdn.com/${w}x${size}/${code}.png`} alt={team} style={{ width: w, height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} />;
+}
 
 function ParticleBackground() {
   const canvasRef = useRef(null);
@@ -41,32 +48,22 @@ function ParticleBackground() {
     canvas.width = W; canvas.height = H;
     const resize = () => { W = window.innerWidth; H = window.innerHeight; canvas.width = W; canvas.height = H; };
     window.addEventListener("resize", resize);
-
     const orbs = Array.from({ length: 5 }, (_, i) => ({
-      x: Math.random() * W, y: Math.random() * H,
-      r: 150 + Math.random() * 200,
-      dx: (Math.random() - 0.5) * 0.25,
-      dy: (Math.random() - 0.5) * 0.25,
-      hue: i % 2 === 0 ? 42 : 215,
-      alpha: 0.035 + Math.random() * 0.03,
+      x: Math.random() * W, y: Math.random() * H, r: 150 + Math.random() * 200,
+      dx: (Math.random() - 0.5) * 0.25, dy: (Math.random() - 0.5) * 0.25,
+      hue: i % 2 === 0 ? 42 : 215, alpha: 0.035 + Math.random() * 0.03,
     }));
-
     const dots = Array.from({ length: 55 }, () => ({
-      x: Math.random() * W, y: Math.random() * H,
-      r: 0.8 + Math.random() * 1.8,
-      dx: (Math.random() - 0.5) * 0.35,
-      dy: -0.15 - Math.random() * 0.35,
+      x: Math.random() * W, y: Math.random() * H, r: 0.8 + Math.random() * 1.8,
+      dx: (Math.random() - 0.5) * 0.35, dy: -0.15 - Math.random() * 0.35,
       alpha: 0.08 + Math.random() * 0.35,
     }));
-
     const draw = () => {
       ctx.clearRect(0, 0, W, H);
       orbs.forEach(o => {
         o.x += o.dx; o.y += o.dy;
-        if (o.x < -o.r) o.x = W + o.r;
-        if (o.x > W + o.r) o.x = -o.r;
-        if (o.y < -o.r) o.y = H + o.r;
-        if (o.y > H + o.r) o.y = -o.r;
+        if (o.x < -o.r) o.x = W + o.r; if (o.x > W + o.r) o.x = -o.r;
+        if (o.y < -o.r) o.y = H + o.r; if (o.y > H + o.r) o.y = -o.r;
         const g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
         g.addColorStop(0, `hsla(${o.hue},75%,55%,${o.alpha})`);
         g.addColorStop(1, `hsla(${o.hue},75%,55%,0)`);
@@ -115,12 +112,7 @@ function ScoreInput({ value, onChange }) {
     <input type="number" min="0" max="20"
       value={value === null ? "" : value}
       onChange={e => onChange(e.target.value === "" ? null : Math.max(0, parseInt(e.target.value) || 0))}
-      style={{
-        width: 40, textAlign: "center", background: "rgba(255,255,255,0.08)",
-        border: "1px solid rgba(255,255,255,0.18)", borderRadius: 6,
-        color: "#fff", fontSize: 15, fontFamily: "inherit", padding: "5px 0",
-        outline: "none", fontWeight: 700,
-      }}
+      style={{ width: 40, textAlign: "center", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 6, color: "#fff", fontSize: 15, fontFamily: "inherit", padding: "5px 0", outline: "none", fontWeight: 700 }}
     />
   );
 }
@@ -134,29 +126,21 @@ function GroupCard({ groupId, teams, onQualify }) {
   const upd = (i, f, v) => setMatches(p => p.map((m, j) => j === i ? { ...m, [f]: v } : m));
 
   return (
-    <div style={{
-      background: "rgba(255,255,255,0.04)", borderRadius: 16,
-      border: "1px solid rgba(255,255,255,0.09)", overflow: "hidden",
-      transition: "transform 0.2s, box-shadow 0.2s", position: "relative", zIndex: 1,
-    }}
+    <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.09)", overflow: "hidden", transition: "transform 0.2s, box-shadow 0.2s", position: "relative", zIndex: 1 }}
       onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 10px 40px rgba(201,168,76,0.1)"; }}
       onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
     >
-      <div style={{ background: "linear-gradient(135deg,#b8922a,#e8c96d,#b8922a)", padding: "10px 14px", display: "flex", alignItems: "center", gap: 8 }}>
+      <div style={{ background: "linear-gradient(135deg,#b8922a,#e8c96d,#b8922a)", padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 21, color: "#0d0d1a", letterSpacing: 2 }}>GROUP {groupId}</span>
-        <span style={{ fontSize: 14, marginLeft: 2 }}>{teams.map(t => FLAGS[t]).join(" ")}</span>
+        <div style={{ display: "flex", gap: 4, marginLeft: 4 }}>
+          {teams.map(t => <Flag key={t} team={t} size={14} />)}
+        </div>
         {allPlayed && <span style={{ marginLeft: "auto", fontSize: 10, background: "#0d0d1a", color: "#c9a84c", borderRadius: 20, padding: "2px 8px", fontWeight: 700 }}>✓ DONE</span>}
       </div>
 
       <div style={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         {["matches", "table"].map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            flex: 1, padding: "7px", background: tab === t ? "rgba(201,168,76,0.1)" : "transparent",
-            border: "none", color: tab === t ? "#c9a84c" : "rgba(255,255,255,0.3)",
-            fontFamily: "inherit", fontSize: 10, fontWeight: 700, letterSpacing: 1,
-            textTransform: "uppercase", cursor: "pointer",
-            borderBottom: tab === t ? "2px solid #c9a84c" : "2px solid transparent",
-          }}>{t}</button>
+          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "7px", background: tab === t ? "rgba(201,168,76,0.1)" : "transparent", border: "none", color: tab === t ? "#c9a84c" : "rgba(255,255,255,0.3)", fontFamily: "inherit", fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", cursor: "pointer", borderBottom: tab === t ? "2px solid #c9a84c" : "2px solid transparent" }}>{t}</button>
         ))}
       </div>
 
@@ -164,17 +148,19 @@ function GroupCard({ groupId, teams, onQualify }) {
         <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
           {matches.map((m, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "7px 8px" }}>
-              <span style={{ flex: 1, textAlign: "right", fontSize: 11, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                <span style={{ fontSize: 15 }}>{FLAGS[m.home]}</span> {m.home}
-              </span>
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 5, overflow: "hidden" }}>
+                <span style={{ fontSize: 11, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.home}</span>
+                <Flag team={m.home} size={13} />
+              </div>
               <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
                 <ScoreInput value={m.homeScore} onChange={v => upd(i, "homeScore", v)} />
                 <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 10 }}>—</span>
                 <ScoreInput value={m.awayScore} onChange={v => upd(i, "awayScore", v)} />
               </div>
-              <span style={{ flex: 1, fontSize: 11, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                <span style={{ fontSize: 15 }}>{FLAGS[m.away]}</span> {m.away}
-              </span>
+              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 5, overflow: "hidden" }}>
+                <Flag team={m.away} size={13} />
+                <span style={{ fontSize: 11, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.away}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -186,9 +172,10 @@ function GroupCard({ groupId, teams, onQualify }) {
           {standings.map((s, i) => (
             <div key={s.team} style={{ display: "grid", gridTemplateColumns: "14px 1fr 24px 24px 24px 24px 30px 30px", gap: "2px 5px", alignItems: "center", padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
               <div style={{ width: 3, height: 16, borderRadius: 2, background: i === 0 ? "#22c55e" : i === 1 ? "#3b82f6" : "rgba(255,255,255,0.08)" }} />
-              <span style={{ fontSize: 11, fontWeight: i < 2 ? 700 : 400, color: i < 2 ? "#fff" : "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ fontSize: 14 }}>{FLAGS[s.team]}</span>{s.team}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, overflow: "hidden" }}>
+                <Flag team={s.team} size={12} />
+                <span style={{ fontSize: 11, fontWeight: i < 2 ? 700 : 400, color: i < 2 ? "#fff" : "rgba(255,255,255,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.team}</span>
+              </div>
               {[s.p, s.w, s.d, s.l, s.gf - s.ga, s.pts].map((v, j) => (
                 <span key={j} style={{ fontSize: 11, textAlign: "center", color: j === 5 ? "#c9a84c" : "rgba(255,255,255,0.6)", fontWeight: j === 5 ? 700 : 400 }}>{v}</span>
               ))}
@@ -208,7 +195,7 @@ export default function Simulator({ onBack }) {
   const done = Object.keys(qualifiers).length;
 
   function handleShare() {
-    const lines = ["🏆 My FIFA World Cup 2026 Predictions!\n", ...groupKeys.filter(g => qualifiers[g]).map(g => `Group ${g}: ${FLAGS[qualifiers[g].first]} ${qualifiers[g].first} | ${FLAGS[qualifiers[g].second]} ${qualifiers[g].second}`)];
+    const lines = ["🏆 My FIFA World Cup 2026 Predictions!\n", ...groupKeys.filter(g => qualifiers[g]).map(g => `Group ${g}: ${qualifiers[g].first} | ${qualifiers[g].second}`)];
     navigator.clipboard.writeText(lines.join("\n")).then(() => { setShareMsg("Copied! ✓"); setTimeout(() => setShareMsg(""), 2500); });
   }
 
@@ -258,7 +245,12 @@ export default function Simulator({ onBack }) {
                     {["first", "second"].map((pos, i) => (
                       <div key={pos} style={{ display: "flex", alignItems: "center", gap: 8, background: q ? "rgba(201,168,76,0.07)" : "rgba(255,255,255,0.03)", border: `1px solid ${q ? "rgba(201,168,76,0.18)" : "rgba(255,255,255,0.06)"}`, borderRadius: 8, padding: "7px 11px", marginBottom: i === 0 ? 5 : 0 }}>
                         <div style={{ width: 3, height: 14, borderRadius: 2, background: i === 0 ? "#22c55e" : "#3b82f6", flexShrink: 0 }} />
-                        {q ? <span style={{ fontSize: 14, fontWeight: 700 }}><span style={{ fontSize: 17 }}>{FLAGS[q[pos]]}</span> {q[pos]}</span> : <span style={{ fontSize: 12, color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>TBD</span>}
+                        {q ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                            <Flag team={q[pos]} size={14} />
+                            <span style={{ fontSize: 14, fontWeight: 700 }}>{q[pos]}</span>
+                          </div>
+                        ) : <span style={{ fontSize: 12, color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>TBD</span>}
                       </div>
                     ))}
                   </div>

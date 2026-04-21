@@ -16,25 +16,41 @@ const GROUPS = {
 };
 
 const FLAG_CODES = {
-  "Mexico": "mx", "South Africa": "za", "South Korea": "kr", "Czechia": "cz",
-  "Canada": "ca", "Bosnia and Herzegovina": "ba", "Qatar": "qa", "Switzerland": "ch",
-  "Brazil": "br", "Morocco": "ma", "Haiti": "ht", "Scotland": "gb-sct",
-  "USA": "us", "Paraguay": "py", "Australia": "au", "Türkiye": "tr",
-  "Germany": "de", "Curaçao": "cw", "Ivory Coast": "ci", "Ecuador": "ec",
-  "Netherlands": "nl", "Japan": "jp", "Sweden": "se", "Tunisia": "tn",
-  "Belgium": "be", "Egypt": "eg", "Iran": "ir", "New Zealand": "nz",
-  "Spain": "es", "Cape Verde": "cv", "Saudi Arabia": "sa", "Uruguay": "uy",
-  "France": "fr", "Senegal": "sn", "Iraq": "iq", "Norway": "no",
-  "Argentina": "ar", "Algeria": "dz", "Austria": "at", "Jordan": "jo",
-  "Portugal": "pt", "DR Congo": "cd", "Uzbekistan": "uz", "Colombia": "co",
-  "England": "gb-eng", "Croatia": "hr", "Ghana": "gh", "Panama": "pa",
+  "Mexico": "MX", "South Africa": "ZA", "South Korea": "KR", "Czechia": "CZ",
+  "Canada": "CA", "Bosnia and Herzegovina": "BA", "Qatar": "QA", "Switzerland": "CH",
+  "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "GB-SCT",
+  "USA": "US", "Paraguay": "PY", "Australia": "AU", "Türkiye": "TR",
+  "Germany": "DE", "Curaçao": "CW", "Ivory Coast": "CI", "Ecuador": "EC",
+  "Netherlands": "NL", "Japan": "JP", "Sweden": "SE", "Tunisia": "TN",
+  "Belgium": "BE", "Egypt": "EG", "Iran": "IR", "New Zealand": "NZ",
+  "Spain": "ES", "Cape Verde": "CV", "Saudi Arabia": "SA", "Uruguay": "UY",
+  "France": "FR", "Senegal": "SN", "Iraq": "IQ", "Norway": "NO",
+  "Argentina": "AR", "Algeria": "DZ", "Austria": "AT", "Jordan": "JO",
+  "Portugal": "PT", "DR Congo": "CD", "Uzbekistan": "UZ", "Colombia": "CO",
+  "England": "GB-ENG", "Croatia": "HR", "Ghana": "GH", "Panama": "PA",
 };
 
 function Flag({ team, size = 16 }) {
   const code = FLAG_CODES[team];
   if (!code) return null;
-  const w = Math.round(size * 1.5);
-  return <img src={`https://flagcdn.com/${w}x${size}/${code}.png`} alt={team} style={{ width: w, height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} />;
+  return (
+    <img
+      src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`}
+      alt={team}
+      style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }}
+      onError={e => { e.target.style.display = "none"; }}
+    />
+  );
+}
+
+function Logo() {
+  return (
+    <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 22, letterSpacing: 3, display: "flex", alignItems: "center" }}>
+      <span>SPORTA</span>
+      <span style={{ background: "linear-gradient(to right, #c9a84c 50%, #ffffff 50%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>T</span>
+      <span style={{ color: "#c9a84c" }}>IQ</span>
+    </div>
+  );
 }
 
 function ParticleBackground() {
@@ -207,10 +223,7 @@ export default function Simulator({ onBack }) {
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 24px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, background: "rgba(8,8,18,0.92)", backdropFilter: "blur(16px)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <button onClick={onBack} style={{ background: "none", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontFamily: "inherit", fontSize: 12, padding: "6px 12px", borderRadius: 7, cursor: "pointer" }}>← Home</button>
-          <div>
-            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 20, letterSpacing: 3, color: "#c9a84c", lineHeight: 1 }}>WORLD CUP 2026</div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: 2 }}>GROUP STAGE SIMULATOR</div>
-          </div>
+          <Logo />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 18, color: "#c9a84c", marginRight: 6 }}>{done}/12</span>

@@ -2,6 +2,7 @@ import { useState } from "react";
 
 const NAV_LINKS = ["World Cup", "Basketball", "Fantasy", "Analytics"];
 
+// Using country-flags.com CDN as alternative
 const FLAG_CODES = {
   "Mexico": "mx", "South Africa": "za", "South Korea": "kr", "Czechia": "cz",
   "Canada": "ca", "Bosnia and Herzegovina": "ba", "Qatar": "qa", "Switzerland": "ch",
@@ -17,11 +18,32 @@ const FLAG_CODES = {
   "England": "gb-eng", "Croatia": "hr", "Ghana": "gh", "Panama": "pa",
 };
 
-function Flag({ team, size = 18 }) {
+function Flag({ team, size = 16 }) {
   const code = FLAG_CODES[team];
   if (!code) return null;
-  const w = Math.round(size * 1.5);
-  return <img src={`https://flagcdn.com/${w}x${size}/${code}.png`} alt={team} style={{ width: w, height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} />;
+  return (
+    <img
+      src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code.toUpperCase()}.svg`}
+      alt={team}
+      style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }}
+      onError={e => { e.target.style.display = "none"; }}
+    />
+  );
+}
+
+function Logo() {
+  return (
+    <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 26, letterSpacing: 3, display: "flex", alignItems: "center" }}>
+      <span>SPORTA</span>
+      <span style={{
+        position: "relative", display: "inline-block",
+        background: "linear-gradient(to right, #10b981 50%, #ffffff 50%)",
+        WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+        backgroundClip: "text",
+      }}>T</span>
+      <span style={{ color: "#10b981" }}>IQ</span>
+    </div>
+  );
 }
 
 const FEATURES = [
@@ -67,7 +89,7 @@ export default function Homepage({ onNavigate }) {
       {/* Nav */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(8,15,12,0.93)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(16,185,129,0.1)", padding: "0 32px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 36 }}>
-          <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 26, letterSpacing: 3 }}>SPORT<span style={{ color: G }}>AQTIC</span></div>
+          <Logo />
           <div style={{ display: "flex", gap: 2 }}>
             {NAV_LINKS.map(l => (
               <button key={l} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontFamily: "inherit", fontSize: 14, fontWeight: 500, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}
@@ -133,72 +155,4 @@ export default function Homepage({ onNavigate }) {
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 44 }}>
             <div style={{ fontSize: 11, color: G, fontWeight: 600, letterSpacing: 2, marginBottom: 10 }}>WHAT WE OFFER</div>
-            <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 44, letterSpacing: 2, margin: 0 }}>EVERYTHING YOU NEED</h2>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
-            {FEATURES.map((f, i) => (
-              <div key={i} onClick={() => f.link && onNavigate("simulator")}
-                style={{ background: hovered === i ? "rgba(16,185,129,0.06)" : "rgba(255,255,255,0.02)", border: `1px solid ${hovered === i ? "rgba(16,185,129,0.28)" : "rgba(255,255,255,0.05)"}`, borderRadius: 16, padding: 22, cursor: f.link ? "pointer" : "default", transition: "all 0.2s", transform: hovered === i ? "translateY(-2px)" : "none" }}
-                onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-                  <span style={{ fontSize: 24 }}>{f.icon}</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: `${f.tagColor}18`, color: f.tagColor, border: `1px solid ${f.tagColor}35` }}>{f.tag}</span>
-                </div>
-                <h3 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 7px", color: "#fff" }}>{f.title}</h3>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.38)", lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* News */}
-      <section style={{ padding: "80px 32px", maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32 }}>
-          <div>
-            <div style={{ fontSize: 11, color: G, fontWeight: 600, letterSpacing: 2, marginBottom: 8 }}>LATEST</div>
-            <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 38, letterSpacing: 2, margin: 0 }}>MATCH PREVIEWS & NEWS</h2>
-          </div>
-          <button style={{ background: "none", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.45)", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "8px 16px", borderRadius: 8, cursor: "pointer" }}>View all →</button>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
-          {NEWS.map((n, i) => (
-            <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 22, cursor: "pointer", transition: "all 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.22)"; e.currentTarget.style.background = "rgba(16,185,129,0.04)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"; e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: "rgba(16,185,129,0.1)", color: G, border: "1px solid rgba(16,185,129,0.22)" }}>{n.category}</span>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.22)" }}>{n.time}</span>
-              </div>
-              <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 10px", lineHeight: 1.5 }}>{n.title}</h3>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.22)" }}>{n.read}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section style={{ maxWidth: 1136, margin: "0 auto 80px", padding: "0 32px", position: "relative", zIndex: 1 }}>
-        <div style={{ background: "linear-gradient(135deg,rgba(16,185,129,0.1),rgba(16,185,129,0.03))", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 20, padding: "52px 48px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 38, letterSpacing: 2, margin: "0 0 10px" }}>READY TO PREDICT THE WORLD CUP?</h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", margin: 0 }}>Free to use. No account needed to start simulating.</p>
-          </div>
-          <button onClick={() => onNavigate("simulator")} style={{ background: G, border: "none", color: "#080f0c", fontFamily: "inherit", fontSize: 15, fontWeight: 700, padding: "16px 32px", borderRadius: 10, cursor: "pointer", whiteSpace: "nowrap" }}
-            onMouseEnter={e => e.target.style.background = "#34d399"} onMouseLeave={e => e.target.style.background = G}>Start Simulating →</button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer style={{ borderTop: "1px solid rgba(16,185,129,0.07)", padding: "28px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 1 }}>
-        <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 20, letterSpacing: 3, color: "rgba(255,255,255,0.25)" }}>SPORT<span style={{ color: "rgba(16,185,129,0.45)" }}>AQTIC</span></div>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.18)" }}>© 2026 Sportaqtic. Built for fans, by fans.</div>
-        <div style={{ display: "flex", gap: 20 }}>
-          {["Privacy", "Terms", "Contact"].map(l => <span key={l} style={{ fontSize: 12, color: "rgba(255,255,255,0.22)", cursor: "pointer" }}>{l}</span>)}
-        </div>
-      </footer>
-    </div>
-  );
-}
+            <h2 style={{ fontFamily: "'Bebas Neue',cursive"

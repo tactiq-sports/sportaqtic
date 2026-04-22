@@ -26,12 +26,13 @@ function Logo({ size = 26 }) {
   return (
     <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: size, letterSpacing: 3, display: "flex", alignItems: "center", lineHeight: 1 }}>
       <span style={{ color: "#fff" }}>SPOR</span>
-      <span style={{
-        background: "linear-gradient(to right, #ffffff 50%, #10b981 50%)",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-        backgroundClip: "text",
-      }}>T</span>
+      <span style={{ position: "relative", display: "inline-block", color: "#fff" }}>
+        T
+        <span style={{
+          position: "absolute", top: 0, left: "50%", right: 0,
+          color: "#10b981", overflow: "hidden",
+        }}>T</span>
+      </span>
       <span style={{ color: "#10b981" }}>ACTIQ</span>
     </div>
   );

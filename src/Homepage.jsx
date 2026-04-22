@@ -142,7 +142,7 @@ export default function Homepage({ onNavigate }) {
         .mobile-nav{display:none;}
         .hero-social{display:flex;align-items:center;gap:16px;margin-top:36px;}
         .cta-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;}
-        .cta-buttons{display:flex;gap:12px;flex-shrink:0;}
+        .cta-buttons{display:flex;gap:12px;flex-shrink:0;flex-wrap:wrap;}
         @media(max-width:768px){
           .hero-grid{grid-template-columns:1fr!important;gap:28px!important;}
           .features-grid{grid-template-columns:1fr!important;}

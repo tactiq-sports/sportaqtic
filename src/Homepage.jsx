@@ -132,8 +132,9 @@ export default function Homepage({ onNavigate }) {
       <div style={{ position: "fixed", inset: 0, backgroundImage: "linear-gradient(rgba(16,185,129,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(16,185,129,0.02) 1px,transparent 1px)", backgroundSize: "60px 60px", pointerEvents: "none", zIndex: 0 }} />
 
       <style>{`
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-        @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        html,body{overflow-x:hidden;margin:0;padding:0;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
         .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
         .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
         .news-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}

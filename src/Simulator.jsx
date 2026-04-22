@@ -43,12 +43,17 @@ function Flag({ team, size = 16 }) {
   );
 }
 
-function Logo() {
+function Logo({ size = 22 }) {
   return (
-    <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 22, letterSpacing: 3, display: "flex", alignItems: "center" }}>
-      <span>SPORTA</span>
-      <span style={{ background: "linear-gradient(to right, #c9a84c 50%, #ffffff 50%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>T</span>
-      <span style={{ color: "#c9a84c" }}>IQ</span>
+    <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: size, letterSpacing: 3, display: "flex", alignItems: "center", lineHeight: 1 }}>
+      <span style={{ color: "#fff" }}>SPOR</span>
+      <span style={{
+        background: "linear-gradient(to right, #ffffff 50%, #c9a84c 50%)",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        backgroundClip: "text",
+      }}>T</span>
+      <span style={{ color: "#c9a84c" }}>ACTIQ</span>
     </div>
   );
 }

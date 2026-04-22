@@ -142,12 +142,12 @@ export default function Homepage({ onNavigate }) {
         <div style={{ display: "flex", alignItems: "center", gap: 36 }}>
           <Logo size={26} />
           <div style={{ display: "flex", gap: 2 }}>
-            {NAV_LINKS.map(l => (
-              <button key={l} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontFamily: "inherit", fontSize: 14, fontWeight: 500, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}
-                onMouseEnter={e => e.target.style.color = "#fff"}
-                onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.45)"}
-              >{l}</button>
-            ))}
+           {NAV_LINKS.map(l => (
+  <button key={l}
+    onClick={() => l === "World Cup" && onNavigate("worldcup")}
+    style={{ background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontFamily: "inherit", fontSize: 14, fontWeight: 500, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}
+    onMouseEnter={e => e.target.style.color = "#fff"} onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.45)"}>{l}</button>
+))}
           </div>
         </div>
         <div style={{ display: "flex", gap: 10 }}>

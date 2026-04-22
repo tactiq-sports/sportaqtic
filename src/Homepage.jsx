@@ -214,7 +214,7 @@ export default function Homepage({ onNavigate }) {
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: G, animation: "pulse 2s infinite" }} />
               <span style={{ fontSize: 11, color: G, fontWeight: 700, letterSpacing: 1 }}>WORLD CUP 2026 — JUNE 11</span>
             </div>
-            <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: "clamp(48px,8vw,96px)", lineHeight: 0.92, letterSpacing: 2, margin: "0 0 20px" }}>
+            <h1 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: "clamp(44px,12vw,96px)", lineHeight: 0.95, letterSpacing: 1, margin: "0 0 20px", wordBreak: "break-word" }}>
               YOUR<br />EDGE<br /><span style={{ color: G }}>IN EVERY</span><br />MATCH
             </h1>
             <p style={{ fontSize: "clamp(14px,2vw,18px)", color: "rgba(255,255,255,0.45)", lineHeight: 1.7, margin: "0 0 28px" }}>

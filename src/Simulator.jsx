@@ -33,32 +33,15 @@ const FLAG_CODES = {
 function Flag({ team, size = 16 }) {
   const code = FLAG_CODES[team];
   if (!code) return null;
-  return (
-    <img
-      src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`}
-      alt={team}
-      style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }}
-      onError={e => { e.target.style.display = "none"; }}
-    />
-  );
+  const w = Math.round(size * 1.5);
+  return <img src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`} alt={team} style={{ width: w, height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />;
 }
 
 function Logo({ size = 22 }) {
   return (
     <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: size, letterSpacing: 3, display: "flex", alignItems: "center", lineHeight: 1 }}>
       <span style={{ color: "#fff" }}>SPOR</span>
-      <svg width={size * 0.62} height={size} viewBox="0 0 20 32" style={{ display: "inline-block", verticalAlign: "top", margin: "0 0px" }}>
-        <defs>
-          <clipPath id="left-sim">
-            <rect x="0" y="0" width="10" height="32" />
-          </clipPath>
-          <clipPath id="right-sim">
-            <rect x="10" y="0" width="10" height="32" />
-          </clipPath>
-        </defs>
-        <text fontFamily="'Bebas Neue',cursive" fontSize="32" letterSpacing="0" clipPath="url(#left-sim)" fill="#ffffff" x="0" y="28">T</text>
-        <text fontFamily="'Bebas Neue',cursive" fontSize="32" letterSpacing="0" clipPath="url(#right-sim)" fill="#c9a84c" x="0" y="28">T</text>
-      </svg>
+      <span style={{ position: "relative", display: "inline-block", color: "#fff" }}>T<span style={{ position: "absolute", top: 0, left: "50%", right: 0, color: "#c9a84c", overflow: "hidden" }}>T</span></span>
       <span style={{ color: "#c9a84c" }}>ACTIQ</span>
     </div>
   );
@@ -159,18 +142,14 @@ function GroupCard({ groupId, teams, onQualify }) {
     >
       <div style={{ background: "linear-gradient(135deg,#b8922a,#e8c96d,#b8922a)", padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 21, color: "#0d0d1a", letterSpacing: 2 }}>GROUP {groupId}</span>
-        <div style={{ display: "flex", gap: 4, marginLeft: 4 }}>
-          {teams.map(t => <Flag key={t} team={t} size={14} />)}
-        </div>
+        <div style={{ display: "flex", gap: 4, marginLeft: 4 }}>{teams.map(t => <Flag key={t} team={t} size={14} />)}</div>
         {allPlayed && <span style={{ marginLeft: "auto", fontSize: 10, background: "#0d0d1a", color: "#c9a84c", borderRadius: 20, padding: "2px 8px", fontWeight: 700 }}>✓ DONE</span>}
       </div>
-
       <div style={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         {["matches", "table"].map(t => (
           <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "7px", background: tab === t ? "rgba(201,168,76,0.1)" : "transparent", border: "none", color: tab === t ? "#c9a84c" : "rgba(255,255,255,0.3)", fontFamily: "inherit", fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", cursor: "pointer", borderBottom: tab === t ? "2px solid #c9a84c" : "2px solid transparent" }}>{t}</button>
         ))}
       </div>
-
       {tab === "matches" ? (
         <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
           {matches.map((m, i) => (
@@ -214,12 +193,18 @@ function GroupCard({ groupId, teams, onQualify }) {
   );
 }
 
-export default function Simulator({ onBack }) {
+export default function Simulator({ onBack, onQualify }) {
   const [qualifiers, setQualifiers] = useState({});
   const [view, setView] = useState("groups");
   const [shareMsg, setShareMsg] = useState("");
   const groupKeys = Object.keys(GROUPS);
   const done = Object.keys(qualifiers).length;
+
+  function handleQualify(id, first, second) {
+    const updated = { ...qualifiers, [id]: { first, second } };
+    setQualifiers(updated);
+    if (onQualify) onQualify(updated);
+  }
 
   function handleShare() {
     const lines = ["🏆 My FIFA World Cup 2026 Predictions!\n", ...groupKeys.filter(g => qualifiers[g]).map(g => `Group ${g}: ${qualifiers[g].first} | ${qualifiers[g].second}`)];
@@ -230,7 +215,6 @@ export default function Simulator({ onBack }) {
     <div style={{ minHeight: "100vh", background: "#080812", fontFamily: "'DM Sans',sans-serif", color: "#fff", position: "relative" }}>
       <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
       <ParticleBackground />
-
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 24px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, background: "rgba(8,8,18,0.92)", backdropFilter: "blur(16px)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <button onClick={onBack} style={{ background: "none", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontFamily: "inherit", fontSize: 12, padding: "6px 12px", borderRadius: 7, cursor: "pointer" }}>← Home</button>
@@ -244,17 +228,13 @@ export default function Simulator({ onBack }) {
           <button onClick={handleShare} style={{ padding: "5px 12px", borderRadius: 7, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 10, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>{shareMsg || "SHARE"}</button>
         </div>
       </div>
-
       <div style={{ height: 2, background: "rgba(255,255,255,0.05)", position: "relative", zIndex: 1 }}>
         <div style={{ height: "100%", background: "linear-gradient(90deg,#c9a84c,#e8c96d)", width: `${(done / 12) * 100}%`, transition: "width 0.5s ease" }} />
       </div>
-
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: "24px 18px", position: "relative", zIndex: 1 }}>
         {view === "groups" ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(330px,1fr))", gap: 14 }}>
-            {groupKeys.map(g => (
-              <GroupCard key={g} groupId={g} teams={GROUPS[g]} onQualify={(id, f, s) => setQualifiers(p => ({ ...p, [id]: { first: f, second: s } }))} />
-            ))}
+            {groupKeys.map(g => <GroupCard key={g} groupId={g} teams={GROUPS[g]} onQualify={handleQualify} />)}
           </div>
         ) : (
           <div>
@@ -269,12 +249,7 @@ export default function Simulator({ onBack }) {
                     {["first", "second"].map((pos, i) => (
                       <div key={pos} style={{ display: "flex", alignItems: "center", gap: 8, background: q ? "rgba(201,168,76,0.07)" : "rgba(255,255,255,0.03)", border: `1px solid ${q ? "rgba(201,168,76,0.18)" : "rgba(255,255,255,0.06)"}`, borderRadius: 8, padding: "7px 11px", marginBottom: i === 0 ? 5 : 0 }}>
                         <div style={{ width: 3, height: 14, borderRadius: 2, background: i === 0 ? "#22c55e" : "#3b82f6", flexShrink: 0 }} />
-                        {q ? (
-                          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                            <Flag team={q[pos]} size={14} />
-                            <span style={{ fontSize: 14, fontWeight: 700 }}>{q[pos]}</span>
-                          </div>
-                        ) : <span style={{ fontSize: 12, color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>TBD</span>}
+                        {q ? <div style={{ display: "flex", alignItems: "center", gap: 7 }}><Flag team={q[pos]} size={14} /><span style={{ fontSize: 14, fontWeight: 700 }}>{q[pos]}</span></div> : <span style={{ fontSize: 12, color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>TBD</span>}
                       </div>
                     ))}
                   </div>

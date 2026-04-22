@@ -321,4 +321,67 @@ export default function Homepage({ onNavigate }) {
       {/* News */}
       <section style={{ padding: "0 40px 100px", position: "relative", zIndex: 1 }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignIte
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 36 }}>
+            <div>
+              <div style={{ fontSize: 11, color: G, fontWeight: 700, letterSpacing: 3, marginBottom: 10 }}>LATEST</div>
+              <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 44, letterSpacing: 2, margin: 0 }}>MATCH PREVIEWS & NEWS</h2>
+            </div>
+            <button style={{ background: "none", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.45)", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "8px 16px", borderRadius: 8, cursor: "pointer" }}>View all →</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
+            {NEWS.map((n, i) => (
+              <div key={i}
+                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 16, padding: 26, cursor: "pointer", transition: "all 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.25)"; e.currentTarget.style.background = "rgba(16,185,129,0.04)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"; e.currentTarget.style.background = "rgba(255,255,255,0.02)"; e.currentTarget.style.transform = "none"; }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: "rgba(16,185,129,0.1)", color: G, border: "1px solid rgba(16,185,129,0.22)" }}>{n.category}</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.22)" }}>{n.time}</span>
+                </div>
+                <h3 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 12px", lineHeight: 1.5 }}>{n.title}</h3>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.22)" }}>{n.read}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ maxWidth: 1200, margin: "0 auto 100px", padding: "0 40px", position: "relative", zIndex: 1 }}>
+        <div style={{ background: "linear-gradient(135deg,rgba(16,185,129,0.12),rgba(16,185,129,0.03))", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 24, padding: "60px 56px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", right: -60, top: -60, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle,rgba(16,185,129,0.08) 0%,transparent 70%)" }} />
+          <div>
+            <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 44, letterSpacing: 2, margin: "0 0 12px" }}>READY TO PREDICT THE WORLD CUP?</h2>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", margin: 0 }}>Free to use. No account needed. Start simulating in seconds.</p>
+          </div>
+          <div style={{ display: "flex", gap: 12, flexShrink: 0 }}>
+            <button onClick={() => onNavigate("simulator")}
+              style={{ background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 15, fontWeight: 700, padding: "16px 32px", borderRadius: 12, cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 0 30px rgba(16,185,129,0.3)" }}
+              onMouseEnter={e => e.target.style.background = "#34d399"}
+              onMouseLeave={e => e.target.style.background = G}
+            >Start Simulating →</button>
+            <button onClick={() => onNavigate("worldcup")}
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 600, padding: "16px 32px", borderRadius: 12, cursor: "pointer", whiteSpace: "nowrap" }}
+              onMouseEnter={e => e.target.style.background = "rgba(255,255,255,0.1)"}
+              onMouseLeave={e => e.target.style.background = "rgba(255,255,255,0.05)"}
+            >World Cup Hub</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer style={{ borderTop: "1px solid rgba(16,185,129,0.07)", padding: "32px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 1 }}>
+        <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 20, letterSpacing: 3, display: "flex", alignItems: "center" }}>
+          <span style={{ color: "rgba(255,255,255,0.3)" }}>SPOR</span>
+          <span style={{ position: "relative", display: "inline-block", color: "rgba(255,255,255,0.3)" }}>T<span style={{ position: "absolute", top: 0, left: "50%", right: 0, color: "rgba(16,185,129,0.4)", overflow: "hidden" }}>T</span></span>
+          <span style={{ color: "rgba(16,185,129,0.4)" }}>ACTIQ</span>
+        </div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.18)" }}>© 2026 Sportactiq. Built for fans, by fans.</div>
+        <div style={{ display: "flex", gap: 20 }}>
+          {["Privacy", "Terms", "Contact"].map(l => <span key={l} style={{ fontSize: 12, color: "rgba(255,255,255,0.22)", cursor: "pointer" }}>{l}</span>)}
+        </div>
+      </footer>
+    </div>
+  );
+}

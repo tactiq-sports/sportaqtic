@@ -47,13 +47,18 @@ function Logo({ size = 22 }) {
   return (
     <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: size, letterSpacing: 3, display: "flex", alignItems: "center", lineHeight: 1 }}>
       <span style={{ color: "#fff" }}>SPOR</span>
-      <span style={{ position: "relative", display: "inline-block", color: "#fff" }}>
-        T
-        <span style={{
-          position: "absolute", top: 0, left: "50%", right: 0,
-          color: "#c9a84c", overflow: "hidden",
-        }}>T</span>
-      </span>
+      <svg width={size * 0.62} height={size} viewBox="0 0 20 32" style={{ display: "inline-block", verticalAlign: "top", margin: "0 0px" }}>
+        <defs>
+          <clipPath id="left-sim">
+            <rect x="0" y="0" width="10" height="32" />
+          </clipPath>
+          <clipPath id="right-sim">
+            <rect x="10" y="0" width="10" height="32" />
+          </clipPath>
+        </defs>
+        <text fontFamily="'Bebas Neue',cursive" fontSize="32" letterSpacing="0" clipPath="url(#left-sim)" fill="#ffffff" x="0" y="28">T</text>
+        <text fontFamily="'Bebas Neue',cursive" fontSize="32" letterSpacing="0" clipPath="url(#right-sim)" fill="#c9a84c" x="0" y="28">T</text>
+      </svg>
       <span style={{ color: "#c9a84c" }}>ACTIQ</span>
     </div>
   );

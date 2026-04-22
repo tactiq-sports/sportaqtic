@@ -43,7 +43,7 @@ function Flag({ team, size = 16 }) {
   );
 }
 
-function Logo({ size = 26 }) {
+function Logo({ size = 22 }) {
   return (
     <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: size, letterSpacing: 3, display: "flex", alignItems: "center", lineHeight: 1 }}>
       <span style={{ color: "#fff" }}>SPOR</span>
@@ -51,10 +51,10 @@ function Logo({ size = 26 }) {
         T
         <span style={{
           position: "absolute", top: 0, left: "50%", right: 0,
-          color: "#10b981", overflow: "hidden",
+          color: "#c9a84c", overflow: "hidden",
         }}>T</span>
       </span>
-      <span style={{ color: "#10b981" }}>ACTIQ</span>
+      <span style={{ color: "#c9a84c" }}>ACTIQ</span>
     </div>
   );
 }

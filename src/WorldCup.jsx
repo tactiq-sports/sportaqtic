@@ -47,29 +47,26 @@ function FootballBackground() {
       const delay = -Math.random() * 20;
       const driftX = (Math.random() - 0.5) * 120;
       const driftY = (Math.random() - 0.5) * 120;
-      const rotateDur = 4 + Math.random() * 8;
-      const rotateDir = Math.random() > 0.5 ? 360 : -360;
+      const rotateEnd = Math.random() > 0.5 ? 360 : -360;
       el.style.cssText = `
         position: absolute;
         left: ${x}%;
         top: ${y}%;
         font-size: ${size}px;
-        opacity: ${0.06 + Math.random() * 0.1};
-        animation: wfloat${i} ${dur}s ${delay}s ease-in-out infinite, wspin${i} ${rotateDur}s linear infinite;
+        opacity: ${0.07 + Math.random() * 0.12};
+        animation: wcball${i} ${dur}s ${delay}s ease-in-out infinite;
         pointer-events: none;
         user-select: none;
       `;
       el.textContent = "⚽";
       const styleEl = document.createElement("style");
       styleEl.textContent = `
-        @keyframes wfloat${i} {
-          0%, 100% { transform: translate(0, 0); }
-          33% { transform: translate(${driftX * 0.5}px, ${driftY * 0.5}px); }
-          66% { transform: translate(${driftX}px, ${driftY * 0.3}px); }
-        }
-        @keyframes wspin${i} {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(${rotateDir}deg); }
+        @keyframes wcball${i} {
+          0%   { transform: translate(0px, 0px) rotate(0deg); }
+          25%  { transform: translate(${driftX * 0.4}px, ${driftY * 0.4}px) rotate(${rotateEnd * 0.25}deg); }
+          50%  { transform: translate(${driftX}px, ${driftY * 0.6}px) rotate(${rotateEnd * 0.5}deg); }
+          75%  { transform: translate(${driftX * 0.6}px, ${driftY}px) rotate(${rotateEnd * 0.75}deg); }
+          100% { transform: translate(0px, 0px) rotate(${rotateEnd}deg); }
         }
       `;
       document.head.appendChild(styleEl);

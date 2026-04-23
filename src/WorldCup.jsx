@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const G = "#c9a84c";
 const LAUNCH_DATE = new Date("2026-06-11T15:00:00Z");
@@ -29,6 +29,67 @@ function useCountdown() {
   const [time, setTime] = useState(calc());
   useEffect(() => { const t = setInterval(() => setTime(calc()), 1000); return () => clearInterval(t); }, []);
   return time;
+}
+
+function FootballBackground() {
+  const containerRef = useRef(null);
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const balls = [];
+    const count = window.innerWidth < 768 ? 8 : 16;
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement("div");
+      const size = 16 + Math.random() * 28;
+      const x = Math.random() * 100;
+      const y = Math.random() * 100;
+      const dur = 12 + Math.random() * 20;
+      const delay = -Math.random() * 20;
+      const driftX = (Math.random() - 0.5) * 120;
+      const driftY = (Math.random() - 0.5) * 120;
+      const rotateDur = 4 + Math.random() * 8;
+      const rotateDir = Math.random() > 0.5 ? 360 : -360;
+      el.style.cssText = `
+        position: absolute;
+        left: ${x}%;
+        top: ${y}%;
+        font-size: ${size}px;
+        opacity: ${0.06 + Math.random() * 0.1};
+        animation: wfloat${i} ${dur}s ${delay}s ease-in-out infinite, wspin${i} ${rotateDur}s linear infinite;
+        pointer-events: none;
+        user-select: none;
+      `;
+      el.textContent = "⚽";
+      const styleEl = document.createElement("style");
+      styleEl.textContent = `
+        @keyframes wfloat${i} {
+          0%, 100% { transform: translate(0, 0); }
+          33% { transform: translate(${driftX * 0.5}px, ${driftY * 0.5}px); }
+          66% { transform: translate(${driftX}px, ${driftY * 0.3}px); }
+        }
+        @keyframes wspin${i} {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(${rotateDir}deg); }
+        }
+      `;
+      document.head.appendChild(styleEl);
+      container.appendChild(el);
+      balls.push({ el, styleEl });
+    }
+    return () => { balls.forEach(({ el, styleEl }) => { el.remove(); styleEl.remove(); }); };
+  }, []);
+
+  return (
+    <div ref={containerRef} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
+      {[
+        { top: "5%", left: "10%", w: 500, color: "rgba(201,168,76,0.06)" },
+        { top: "60%", left: "70%", w: 400, color: "rgba(201,168,76,0.04)" },
+      ].map((o, i) => (
+        <div key={i} style={{ position: "absolute", top: o.top, left: o.left, width: o.w, height: o.w, borderRadius: "50%", background: `radial-gradient(circle,${o.color} 0%,transparent 70%)` }} />
+      ))}
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(201,168,76,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.02) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
+    </div>
+  );
 }
 
 const POLL_OPTIONS = [
@@ -71,26 +132,17 @@ export default function WorldCup({ onBack, onNavigate }) {
 
       <style>{`
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-        .wc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .wc-cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .countdown-grid { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; gap: 8px; align-items: center; }
-        @media(max-width: 768px) {
-          .wc-grid { grid-template-columns: 1fr !important; }
-          .wc-cta-grid { grid-template-columns: 1fr !important; }
-          .countdown-grid { gap: 4px !important; }
+        .wc-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+        .wc-cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+        .countdown-grid{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:8px;align-items:center;}
+        @media(max-width:768px){
+          .wc-grid{grid-template-columns:1fr!important;}
+          .wc-cta-grid{grid-template-columns:1fr!important;}
+          .countdown-grid{gap:4px!important;}
         }
       `}</style>
 
-      {/* Background */}
-      <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
-        {[
-          { top: "5%", left: "10%", w: 500, color: "rgba(201,168,76,0.06)" },
-          { top: "60%", left: "70%", w: 400, color: "rgba(201,168,76,0.04)" },
-        ].map((o, i) => (
-          <div key={i} style={{ position: "absolute", top: o.top, left: o.left, width: o.w, height: o.w, borderRadius: "50%", background: `radial-gradient(circle,${o.color} 0%,transparent 70%)` }} />
-        ))}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(201,168,76,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.02) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
-      </div>
+      <FootballBackground />
 
       {/* Navbar */}
       <div style={{ borderBottom: "1px solid rgba(201,168,76,0.12)", padding: "0 20px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, background: "rgba(13,10,4,0.95)", backdropFilter: "blur(16px)" }}>
@@ -191,7 +243,7 @@ export default function WorldCup({ onBack, onNavigate }) {
             { icon: "🏆", title: "KNOCKOUT BRACKET", desc: "Pick winners all the way to the Final.", page: "bracket" },
           ].map((c, i) => (
             <div key={i} onClick={() => onNavigate(c.page)}
-              style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 14, padding: "20px 20px", cursor: "pointer", transition: "all 0.2s" }}
+              style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 14, padding: "20px", cursor: "pointer", transition: "all 0.2s" }}
               onMouseEnter={e => e.currentTarget.style.background = "rgba(201,168,76,0.14)"}
               onMouseLeave={e => e.currentTarget.style.background = "rgba(201,168,76,0.08)"}
             >

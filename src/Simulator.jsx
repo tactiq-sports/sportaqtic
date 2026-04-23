@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { supabase } from "./supabase";
 
 const GROUPS = {
   A: ["Mexico", "South Africa", "South Korea", "Czechia"],
@@ -51,7 +52,7 @@ function Logo({ size = 22 }) {
   );
 }
 
-function ParticleBackground() {
+function FootballBackground() {
   const containerRef = useRef(null);
   useEffect(() => {
     const container = containerRef.current;
@@ -67,60 +68,38 @@ function ParticleBackground() {
       const delay = -Math.random() * 20;
       const driftX = (Math.random() - 0.5) * 120;
       const driftY = (Math.random() - 0.5) * 120;
-      const rotate = Math.random() * 360;
       const rotateDur = 4 + Math.random() * 8;
+      const rotateDir = Math.random() > 0.5 ? 360 : -360;
       el.style.cssText = `
-        position: absolute;
-        left: ${x}%;
-        top: ${y}%;
-        font-size: ${size}px;
-        opacity: ${0.06 + Math.random() * 0.1};
-        animation: float${i} ${dur}s ${delay}s ease-in-out infinite, spin${i} ${rotateDur}s linear infinite;
-        pointer-events: none;
-        user-select: none;
-        filter: grayscale(0.3);
+        position:absolute;left:${x}%;top:${y}%;font-size:${size}px;
+        opacity:${0.07 + Math.random() * 0.12};
+        animation:simball${i} ${dur}s ${delay}s ease-in-out infinite;
+        pointer-events:none;user-select:none;
       `;
       el.textContent = "⚽";
       const styleEl = document.createElement("style");
       styleEl.textContent = `
-        @keyframes float${i} {
-          0%, 100% { transform: translate(0, 0); }
-          33% { transform: translate(${driftX * 0.5}px, ${driftY * 0.5}px); }
-          66% { transform: translate(${driftX}px, ${driftY * 0.3}px); }
-        }
-        @keyframes spin${i} {
-          from { filter: grayscale(0.3) rotate(0deg); }
-          to { filter: grayscale(0.3) rotate(${rotate > 180 ? 360 : -360}deg); }
-        }
-      `;
+        @keyframes simball${i} {
+          0%{transform:translate(0px,0px) rotate(0deg);}
+          25%{transform:translate(${driftX*.4}px,${driftY*.4}px) rotate(${rotateDir*.25}deg);}
+          50%{transform:translate(${driftX}px,${driftY*.6}px) rotate(${rotateDir*.5}deg);}
+          75%{transform:translate(${driftX*.6}px,${driftY}px) rotate(${rotateDir*.75}deg);}
+          100%{transform:translate(0px,0px) rotate(${rotateDir}deg);}
+        }`;
       document.head.appendChild(styleEl);
       container.appendChild(el);
       balls.push({ el, styleEl });
     }
-    return () => {
-      balls.forEach(({ el, styleEl }) => {
-        el.remove();
-        styleEl.remove();
-      });
-    };
+    return () => { balls.forEach(({ el, styleEl }) => { el.remove(); styleEl.remove(); }); };
   }, []);
-
   return (
-    <div ref={containerRef} style={{
-      position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
-      pointerEvents: "none", zIndex: 0, overflow: "hidden",
-    }}>
-      {/* Glowing orb backgrounds */}
+    <div ref={containerRef} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
       {[
         { top: "10%", left: "5%", size: 400, color: "rgba(201,168,76,0.05)" },
         { top: "60%", left: "70%", size: 500, color: "rgba(59,130,246,0.04)" },
         { top: "30%", left: "85%", size: 300, color: "rgba(201,168,76,0.04)" },
       ].map((o, i) => (
-        <div key={i} style={{
-          position: "absolute", top: o.top, left: o.left,
-          width: o.size, height: o.size, borderRadius: "50%",
-          background: `radial-gradient(circle, ${o.color} 0%, transparent 70%)`,
-        }} />
+        <div key={i} style={{ position: "absolute", top: o.top, left: o.left, width: o.size, height: o.size, borderRadius: "50%", background: `radial-gradient(circle,${o.color} 0%,transparent 70%)` }} />
       ))}
     </div>
   );
@@ -167,19 +146,20 @@ function GroupCard({ groupId, teams, onQualify }) {
   const upd = (i, f, v) => setMatches(p => p.map((m, j) => j === i ? { ...m, [f]: v } : m));
 
   return (
-    <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.09)", overflow: "hidden", position: "relative", zIndex: 1 }}>
+    <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.09)", overflow: "hidden", position: "relative", zIndex: 1 }}
+      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 10px 40px rgba(201,168,76,0.1)"; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
+    >
       <div style={{ background: "linear-gradient(135deg,#b8922a,#e8c96d,#b8922a)", padding: "9px 14px", display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 19, color: "#0d0d1a", letterSpacing: 2 }}>GROUP {groupId}</span>
         <div style={{ display: "flex", gap: 3, marginLeft: 4 }}>{teams.map(t => <Flag key={t} team={t} size={13} />)}</div>
         {allPlayed && <span style={{ marginLeft: "auto", fontSize: 9, background: "#0d0d1a", color: "#c9a84c", borderRadius: 20, padding: "2px 8px", fontWeight: 700 }}>✓ DONE</span>}
       </div>
-
       <div style={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         {["matches", "table"].map(t => (
           <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "7px", background: tab === t ? "rgba(201,168,76,0.1)" : "transparent", border: "none", color: tab === t ? "#c9a84c" : "rgba(255,255,255,0.3)", fontFamily: "inherit", fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", cursor: "pointer", borderBottom: tab === t ? "2px solid #c9a84c" : "2px solid transparent" }}>{t}</button>
         ))}
       </div>
-
       {tab === "matches" ? (
         <div style={{ padding: "10px 10px", display: "flex", flexDirection: "column", gap: 5 }}>
           {matches.map((m, i) => (
@@ -227,8 +207,34 @@ export default function Simulator({ onBack, onQualify }) {
   const [qualifiers, setQualifiers] = useState({});
   const [view, setView] = useState("groups");
   const [shareMsg, setShareMsg] = useState("");
+  const [saveMsg, setSaveMsg] = useState("");
+  const [user, setUser] = useState(null);
   const groupKeys = Object.keys(GROUPS);
   const done = Object.keys(qualifiers).length;
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+  }, []);
+
+  // Auto-save when all groups complete
+  useEffect(() => {
+    if (done === 12 && user) savePredictions();
+  }, [done, user]);
+
+  async function savePredictions() {
+    if (!user) return;
+    const { error } = await supabase.from("predictions").upsert({
+      user_id: user.id,
+      predictions: qualifiers,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+    if (!error) {
+      setSaveMsg("✓ Predictions saved!");
+      setTimeout(() => setSaveMsg(""), 3000);
+    }
+  }
 
   function handleQualify(id, first, second) {
     const updated = { ...qualifiers, [id]: { first, second } };
@@ -244,14 +250,14 @@ export default function Simulator({ onBack, onQualify }) {
   return (
     <div style={{ minHeight: "100vh", background: "#080812", fontFamily: "'DM Sans',sans-serif", color: "#fff", position: "relative", overflowX: "hidden" }}>
       <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <ParticleBackground />
+      <FootballBackground />
 
       <style>{`
-        .sim-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
-        .sim-bracket { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 10px; }
-        @media(max-width: 768px) {
-          .sim-groups { grid-template-columns: 1fr !important; }
-          .sim-bracket { grid-template-columns: 1fr !important; }
+        .sim-groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;}
+        .sim-bracket{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px;}
+        @media(max-width:768px){
+          .sim-groups{grid-template-columns:1fr!important;}
+          .sim-bracket{grid-template-columns:1fr!important;}
         }
       `}</style>
 
@@ -261,6 +267,8 @@ export default function Simulator({ onBack, onQualify }) {
           <Logo size={18} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          {saveMsg && <span style={{ fontSize: 11, color: "#22c55e", fontWeight: 700 }}>{saveMsg}</span>}
+          {!user && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Log in to save</span>}
           <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 16, color: "#c9a84c" }}>{done}/12</span>
           {["groups", "bracket"].map(v => (
             <button key={v} onClick={() => setView(v)} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid", borderColor: view === v ? "#c9a84c" : "rgba(255,255,255,0.12)", background: view === v ? "rgba(201,168,76,0.14)" : "transparent", color: view === v ? "#c9a84c" : "rgba(255,255,255,0.4)", fontFamily: "inherit", fontSize: 9, fontWeight: 700, textTransform: "uppercase", cursor: "pointer", letterSpacing: 1 }}>{v}</button>
@@ -274,6 +282,13 @@ export default function Simulator({ onBack, onQualify }) {
       </div>
 
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 14px", position: "relative", zIndex: 1 }}>
+        {!user && (
+          <div style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: "11px 16px", marginBottom: 16, fontSize: 13, color: "rgba(201,168,76,0.8)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span>💡 Log in to save your predictions automatically</span>
+            <button onClick={onBack} style={{ background: "#c9a84c", border: "none", color: "#080812", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "5px 12px", borderRadius: 6, cursor: "pointer" }}>Log in</button>
+          </div>
+        )}
+
         {view === "groups" ? (
           <div className="sim-groups">
             {groupKeys.map(g => <GroupCard key={g} groupId={g} teams={GROUPS[g]} onQualify={handleQualify} />)}

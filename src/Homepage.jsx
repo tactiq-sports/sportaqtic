@@ -22,6 +22,20 @@ function Flag({ team, size = 16 }) {
   return <img src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`} alt={team} style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />;
 }
 
+function Logo({ size = 24, color1 = "#fff", color2 = G, opacity = 1 }) {
+  return (
+    <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: size, letterSpacing: 3, display: "flex", alignItems: "flex-start", lineHeight: 1, opacity }}>
+      <span style={{ color: color1 }}>SPOR</span>
+      <span style={{ position: "relative", display: "inline-block" }}>
+        <span style={{ color: "transparent" }}>T</span>
+        <span style={{ position: "absolute", top: 0, left: 0, width: "50%", overflow: "hidden", color: color1, whiteSpace: "nowrap" }}>T</span>
+        <span style={{ position: "absolute", top: 0, right: 0, width: "50%", overflow: "hidden", color: color2, whiteSpace: "nowrap", direction: "rtl" }}>T</span>
+      </span>
+      <span style={{ color: color2 }}>ACTIQ</span>
+    </div>
+  );
+}
+
 function ParticleBackground() {
   const canvasRef = useRef(null);
   useEffect(() => {
@@ -151,11 +165,7 @@ export default function Homepage({ onNavigate }) {
 
       {/* Nav */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(6,13,10,0.95)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(16,185,129,0.1)", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: 3, display: "flex", alignItems: "center" }}>
-          <span style={{ color: "#fff" }}>SPOR</span>
-          <span style={{ position: "relative", display: "inline-block", color: "#fff" }}>T<span style={{ position: "absolute", top: 0, left: "50%", right: 0, color: G, overflow: "hidden" }}>T</span></span>
-          <span style={{ color: G }}>ACTIQ</span>
-        </div>
+        <Logo size={24} />
 
         <div className="nav-links">
           {NAV_LINKS.map(l => (
@@ -314,11 +324,7 @@ export default function Homepage({ onNavigate }) {
 
       {/* Footer */}
       <footer style={{ borderTop: "1px solid rgba(16,185,129,0.07)", padding: "28px 24px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, position: "relative", zIndex: 1 }}>
-        <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 20, letterSpacing: 3, display: "flex", alignItems: "center" }}>
-          <span style={{ color: "rgba(255,255,255,0.3)" }}>SPOR</span>
-          <span style={{ position: "relative", display: "inline-block", color: "rgba(255,255,255,0.3)" }}>T<span style={{ position: "absolute", top: 0, left: "50%", right: 0, color: "rgba(16,185,129,0.4)", overflow: "hidden" }}>T</span></span>
-          <span style={{ color: "rgba(16,185,129,0.4)" }}>ACTIQ</span>
-        </div>
+        <Logo size={20} color1="rgba(255,255,255,0.3)" color2="rgba(16,185,129,0.4)" />
         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.18)" }}>© 2026 Sportactiq. Built for fans, by fans.</div>
         <div style={{ display: "flex", gap: 20 }}>
           {["Privacy", "Terms", "Contact"].map(l => <span key={l} style={{ fontSize: 12, color: "rgba(255,255,255,0.22)", cursor: "pointer" }}>{l}</span>)}

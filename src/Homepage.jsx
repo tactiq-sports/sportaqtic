@@ -94,13 +94,6 @@ const FEATURES = [
   { icon: "🏀", title: "EuroLeague Analytics", desc: "AI-powered basketball analytics for European leagues.", tag: "Coming soon", tagColor: "#4b5563", link: false },
 ];
 
-const NEWS = [
-  { category: "World Cup 2026", title: "USA, Canada & Mexico: Inside the First Tri-Nation World Cup", time: "2 hours ago", read: "4 min read" },
-  { category: "Preview", title: "France vs Senegal: Group I Could Be the Tournament's Toughest", time: "5 hours ago", read: "6 min read" },
-  { category: "Analysis", title: "Why Brazil's New Generation Could End Their 24-Year Title Drought", time: "1 day ago", read: "8 min read" },
-  { category: "Fantasy", title: "10 Underrated Players to Target in Your World Cup Fantasy League", time: "1 day ago", read: "5 min read" },
-];
-
 const STATS = [{ value: "48", label: "Teams" }, { value: "104", label: "Matches" }, { value: "12", label: "Groups" }, { value: "3", label: "Hosts" }];
 
 function TeamTicker() {
@@ -120,6 +113,86 @@ function TeamTicker() {
   );
 }
 
+function NewsSection() {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetch(`https://gnews.io/api/v4/search?q=World+Cup+2026+football&lang=en&max=4&apikey=4251c8754f704a579f55bb96507f463d`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.articles && data.articles.length > 0) {
+          setArticles(data.articles);
+        } else {
+          setError(true);
+        }
+        setLoading(false);
+      })
+      .catch(() => { setError(true); setLoading(false); });
+  }, []);
+
+  function timeAgo(dateStr) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const hours = Math.floor(diff / 3600000);
+    if (hours < 1) return "Just now";
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  }
+
+  return (
+    <section style={{ padding: "0 24px 80px", position: "relative", zIndex: 1 }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+          <div>
+            <div style={{ fontSize: 11, color: G, fontWeight: 700, letterSpacing: 3, marginBottom: 8 }}>LATEST</div>
+            <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: "clamp(28px,4vw,44px)", letterSpacing: 2, margin: 0 }}>NEWS & PREVIEWS</h2>
+          </div>
+        </div>
+
+        {loading && (
+          <div className="news-grid" style={{ display: "grid", gap: 12 }}>
+            {[1,2,3,4].map(i => (
+              <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, height: 130 }}>
+                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 6, height: 10, width: "35%", marginBottom: 14, animation: "pulse 1.5s infinite" }} />
+                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 6, height: 14, width: "95%", marginBottom: 8, animation: "pulse 1.5s infinite" }} />
+                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 6, height: 14, width: "75%", animation: "pulse 1.5s infinite" }} />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && !error && (
+          <div className="news-grid" style={{ display: "grid", gap: 12 }}>
+            {articles.map((n, i) => (
+              <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
+                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, cursor: "pointer", transition: "all 0.2s", textDecoration: "none", color: "inherit", display: "block" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.25)"; e.currentTarget.style.background = "rgba(16,185,129,0.04)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"; e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: "rgba(16,185,129,0.1)", color: G, border: "1px solid rgba(16,185,129,0.22)", whiteSpace: "nowrap" }}>
+                    {n.source.name}
+                  </span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.22)" }}>{timeAgo(n.publishedAt)}</span>
+                </div>
+                <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", lineHeight: 1.5, color: "#fff" }}>{n.title}</h3>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{n.description}</p>
+              </a>
+            ))}
+          </div>
+        )}
+
+        {!loading && error && (
+          <div style={{ textAlign: "center", padding: "40px 20px", color: "rgba(255,255,255,0.3)", fontSize: 14 }}>
+            Could not load news right now. Check back soon.
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default function Homepage({ onNavigate }) {
   const [hovered, setHovered] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -133,11 +206,11 @@ export default function Homepage({ onNavigate }) {
 
       <style>{`
         html,body{overflow-x:hidden;margin:0;padding:0;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+        @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
         .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
         .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-        .news-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+        .news-grid{grid-template-columns:repeat(2,1fr);}
         .nav-links{display:flex;gap:2px;}
         .nav-right{display:flex;align-items:center;gap:8px;}
         .mobile-nav{display:none;}
@@ -300,34 +373,7 @@ export default function Homepage({ onNavigate }) {
         </div>
       </section>
 
-      {/* News */}
-      <section style={{ padding: "0 24px 80px", position: "relative", zIndex: 1 }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
-            <div>
-              <div style={{ fontSize: 11, color: G, fontWeight: 700, letterSpacing: 3, marginBottom: 8 }}>LATEST</div>
-              <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: "clamp(28px,4vw,44px)", letterSpacing: 2, margin: 0 }}>NEWS & PREVIEWS</h2>
-            </div>
-            <button style={{ background: "none", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.45)", fontFamily: "inherit", fontSize: 12, fontWeight: 600, padding: "7px 14px", borderRadius: 8, cursor: "pointer", whiteSpace: "nowrap" }}>View all →</button>
-          </div>
-          <div className="news-grid">
-            {NEWS.map((n, i) => (
-              <div key={i}
-                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, cursor: "pointer", transition: "all 0.2s" }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.25)"; e.currentTarget.style.background = "rgba(16,185,129,0.04)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"; e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: "rgba(16,185,129,0.1)", color: G, border: "1px solid rgba(16,185,129,0.22)" }}>{n.category}</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.22)" }}>{n.time}</span>
-                </div>
-                <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 10px", lineHeight: 1.5 }}>{n.title}</h3>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.22)" }}>{n.read}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <NewsSection />
 
       {/* CTA */}
       <section style={{ maxWidth: 1200, margin: "0 auto 80px", padding: "0 24px", position: "relative", zIndex: 1 }}>

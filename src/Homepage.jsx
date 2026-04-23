@@ -113,35 +113,6 @@ function TeamTicker() {
   );
 }
 
-function NewsSection() {
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{
-          role: "user",
-          content: `Give me 4 recent and realistic FIFA World Cup 2026 news headlines and short descriptions. 
-          Return ONLY a JSON array with no markdown, no backticks, just raw JSON like this:
-          [{"title":"...","description":"...","source":"ESPN","publishedAt":"2026-04-23T10:00:00Z","url":"https://espn.com"},...]
-          Make them realistic, varied (match previews, team news, stadium info, player news) and engaging.`
-        }]
-      })
-    })
-      .then(r => r.json())
-      .then(data => {
-        const text = data.content[0].text;
-        const parsed = JSON.parse(text);
-        setArticles(parsed);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
 
   function timeAgo(dateStr) {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -443,7 +414,6 @@ export default function Homepage({ onNavigate }) {
         </div>
       </section>
 
-      <NewsSection />
 
       {/* CTA */}
       <section style={{ maxWidth: 1200, margin: "0 auto 80px", padding: "0 24px", position: "relative", zIndex: 1 }}>

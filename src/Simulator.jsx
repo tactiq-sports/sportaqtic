@@ -37,16 +37,16 @@ function Flag({ team, size = 16 }) {
   return <img src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`} alt={team} style={{ width: w, height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />;
 }
 
-function Logo({ size = 26 }) {
+function Logo({ size = 22 }) {
   return (
     <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: size, letterSpacing: 3, display: "flex", alignItems: "flex-start", lineHeight: 1 }}>
       <span style={{ color: "#fff" }}>SPOR</span>
       <span style={{ position: "relative", display: "inline-block" }}>
         <span style={{ color: "transparent" }}>T</span>
         <span style={{ position: "absolute", top: 0, left: 0, width: "50%", overflow: "hidden", color: "#fff", whiteSpace: "nowrap" }}>T</span>
-        <span style={{ position: "absolute", top: 0, right: 0, width: "50%", overflow: "hidden", color: "#10b981", whiteSpace: "nowrap", direction: "rtl" }}>T</span>
+        <span style={{ position: "absolute", top: 0, right: 0, width: "50%", overflow: "hidden", color: "#c9a84c", whiteSpace: "nowrap", direction: "rtl" }}>T</span>
       </span>
-      <span style={{ color: "#10b981" }}>ACTIQ</span>
+      <span style={{ color: "#c9a84c" }}>ACTIQ</span>
     </div>
   );
 }

@@ -113,127 +113,6 @@ function TeamTicker() {
   );
 }
 
-
-  function timeAgo(dateStr) {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return "Just now";
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
-  }
-
-  return (
-    <section style={{ padding: "0 24px 80px", position: "relative", zIndex: 1 }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 11, color: G, fontWeight: 700, letterSpacing: 3, marginBottom: 8 }}>LATEST</div>
-          <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: "clamp(28px,4vw,44px)", letterSpacing: 2, margin: 0 }}>NEWS & PREVIEWS</h2>
-        </div>
-
-        {loading && (
-          <div className="news-grid" style={{ display: "grid", gap: 12 }}>
-            {[1,2,3,4].map(i => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, height: 130 }}>
-                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 6, height: 10, width: "35%", marginBottom: 14 }} />
-                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 6, height: 14, width: "95%", marginBottom: 8 }} />
-                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 6, height: 14, width: "75%" }} />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!loading && articles.length > 0 && (
-          <div className="news-grid" style={{ display: "grid", gap: 12 }}>
-            {articles.map((n, i) => (
-              <div key={i}
-                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, transition: "all 0.2s" }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.25)"; e.currentTarget.style.background = "rgba(16,185,129,0.04)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"; e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: "rgba(16,185,129,0.1)", color: G, border: "1px solid rgba(16,185,129,0.22)", whiteSpace: "nowrap" }}>
-                    {n.source}
-                  </span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.22)" }}>{timeAgo(n.publishedAt)}</span>
-                </div>
-                <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", lineHeight: 1.5, color: "#fff" }}>{n.title}</h3>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.5 }}>{n.description}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!loading && articles.length === 0 && (
-          <div style={{ textAlign: "center", padding: "40px 20px", color: "rgba(255,255,255,0.3)", fontSize: 14 }}>
-            Could not load news right now. Check back soon.
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-  function timeAgo(dateStr) {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return "Just now";
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
-  }
-
-  return (
-    <section style={{ padding: "0 24px 80px", position: "relative", zIndex: 1 }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
-          <div>
-            <div style={{ fontSize: 11, color: G, fontWeight: 700, letterSpacing: 3, marginBottom: 8 }}>LATEST</div>
-            <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: "clamp(28px,4vw,44px)", letterSpacing: 2, margin: 0 }}>NEWS & PREVIEWS</h2>
-          </div>
-        </div>
-
-        {loading && (
-          <div className="news-grid" style={{ display: "grid", gap: 12 }}>
-            {[1,2,3,4].map(i => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, height: 130 }}>
-                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 6, height: 10, width: "35%", marginBottom: 14, animation: "pulse 1.5s infinite" }} />
-                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 6, height: 14, width: "95%", marginBottom: 8, animation: "pulse 1.5s infinite" }} />
-                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 6, height: 14, width: "75%", animation: "pulse 1.5s infinite" }} />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!loading && !error && (
-          <div className="news-grid" style={{ display: "grid", gap: 12 }}>
-            {articles.map((n, i) => (
-              <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
-                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: 20, cursor: "pointer", transition: "all 0.2s", textDecoration: "none", color: "inherit", display: "block" }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.25)"; e.currentTarget.style.background = "rgba(16,185,129,0.04)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"; e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: "rgba(16,185,129,0.1)", color: G, border: "1px solid rgba(16,185,129,0.22)", whiteSpace: "nowrap" }}>
-                    {n.source.name}
-                  </span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.22)" }}>{timeAgo(n.publishedAt)}</span>
-                </div>
-                <h3 style={{ fontSize: 14, fontWeight: 600, margin: "0 0 8px", lineHeight: 1.5, color: "#fff" }}>{n.title}</h3>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{n.description}</p>
-              </a>
-            ))}
-          </div>
-        )}
-
-        {!loading && error && (
-          <div style={{ textAlign: "center", padding: "40px 20px", color: "rgba(255,255,255,0.3)", fontSize: 14 }}>
-            Could not load news right now. Check back soon.
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
 export default function Homepage({ onNavigate }) {
   const [hovered, setHovered] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -251,7 +130,6 @@ export default function Homepage({ onNavigate }) {
         @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
         .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
         .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-        .news-grid{grid-template-columns:repeat(2,1fr);}
         .nav-links{display:flex;gap:2px;}
         .nav-right{display:flex;align-items:center;gap:8px;}
         .mobile-nav{display:none;}
@@ -261,7 +139,6 @@ export default function Homepage({ onNavigate }) {
         @media(max-width:768px){
           .hero-grid{grid-template-columns:1fr!important;gap:28px!important;}
           .features-grid{grid-template-columns:1fr!important;}
-          .news-grid{grid-template-columns:1fr!important;}
           .nav-links{display:none!important;}
           .nav-right{display:none!important;}
           .mobile-nav{display:flex!important;align-items:center;gap:8px;}
@@ -413,7 +290,6 @@ export default function Homepage({ onNavigate }) {
           </div>
         </div>
       </section>
-
 
       {/* CTA */}
       <section style={{ maxWidth: 1200, margin: "0 auto 80px", padding: "0 24px", position: "relative", zIndex: 1 }}>

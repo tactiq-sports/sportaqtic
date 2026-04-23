@@ -219,9 +219,11 @@ export default function Simulator({ onBack, onQualify }) {
   }, []);
 
   // Auto-save when all groups complete
-  useEffect(() => {
-    if (done === 12 && user) savePredictions();
-  }, [done, user]);
+useEffect(() => {
+  if (done === 12 && user) {
+    savePredictions();
+  }
+}, [qualifiers, user]);
 
   async function savePredictions() {
     if (!user) return;
@@ -273,7 +275,10 @@ export default function Simulator({ onBack, onQualify }) {
           {["groups", "bracket"].map(v => (
             <button key={v} onClick={() => setView(v)} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid", borderColor: view === v ? "#c9a84c" : "rgba(255,255,255,0.12)", background: view === v ? "rgba(201,168,76,0.14)" : "transparent", color: view === v ? "#c9a84c" : "rgba(255,255,255,0.4)", fontFamily: "inherit", fontSize: 9, fontWeight: 700, textTransform: "uppercase", cursor: "pointer", letterSpacing: 1 }}>{v}</button>
           ))}
-          <button onClick={handleShare} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>{shareMsg || "SHARE"}</button>
+          {user && done > 0 && (
+  <button onClick={savePredictions} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #22c55e", background: "rgba(34,197,94,0.15)", color: "#22c55e", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>{saveMsg || "SAVE"}</button>
+)}
+<button onClick={handleShare} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>{shareMsg || "SHARE"}</button>
         </div>
       </div>
 

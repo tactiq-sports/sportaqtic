@@ -48,51 +48,78 @@ function Logo({ size = 22 }) {
 }
 
 function ParticleBackground() {
-  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    let animId;
-    let W = window.innerWidth, H = window.innerHeight;
-    canvas.width = W; canvas.height = H;
-    const resize = () => { W = window.innerWidth; H = window.innerHeight; canvas.width = W; canvas.height = H; };
-    window.addEventListener("resize", resize);
-    const orbs = Array.from({ length: 5 }, (_, i) => ({
-      x: Math.random() * W, y: Math.random() * H, r: 150 + Math.random() * 200,
-      dx: (Math.random() - 0.5) * 0.25, dy: (Math.random() - 0.5) * 0.25,
-      hue: i % 2 === 0 ? 42 : 215, alpha: 0.035 + Math.random() * 0.03,
-    }));
-    const dots = Array.from({ length: 55 }, () => ({
-      x: Math.random() * W, y: Math.random() * H, r: 0.8 + Math.random() * 1.8,
-      dx: (Math.random() - 0.5) * 0.35, dy: -0.15 - Math.random() * 0.35,
-      alpha: 0.08 + Math.random() * 0.35,
-    }));
-    const draw = () => {
-      ctx.clearRect(0, 0, W, H);
-      orbs.forEach(o => {
-        o.x += o.dx; o.y += o.dy;
-        if (o.x < -o.r) o.x = W + o.r; if (o.x > W + o.r) o.x = -o.r;
-        if (o.y < -o.r) o.y = H + o.r; if (o.y > H + o.r) o.y = -o.r;
-        const g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
-        g.addColorStop(0, `hsla(${o.hue},75%,55%,${o.alpha})`);
-        g.addColorStop(1, `hsla(${o.hue},75%,55%,0)`);
-        ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
-        ctx.fillStyle = g; ctx.fill();
+    const container = containerRef.current;
+    if (!container) return;
+    const balls = [];
+    const count = window.innerWidth < 768 ? 8 : 16;
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement("div");
+      const size = 16 + Math.random() * 28;
+      const x = Math.random() * 100;
+      const y = Math.random() * 100;
+      const dur = 12 + Math.random() * 20;
+      const delay = -Math.random() * 20;
+      const driftX = (Math.random() - 0.5) * 120;
+      const driftY = (Math.random() - 0.5) * 120;
+      const rotate = Math.random() * 360;
+      const rotateDur = 4 + Math.random() * 8;
+      el.style.cssText = `
+        position: absolute;
+        left: ${x}%;
+        top: ${y}%;
+        font-size: ${size}px;
+        opacity: ${0.06 + Math.random() * 0.1};
+        animation: float${i} ${dur}s ${delay}s ease-in-out infinite, spin${i} ${rotateDur}s linear infinite;
+        pointer-events: none;
+        user-select: none;
+        filter: grayscale(0.3);
+      `;
+      el.textContent = "⚽";
+      const styleEl = document.createElement("style");
+      styleEl.textContent = `
+        @keyframes float${i} {
+          0%, 100% { transform: translate(0, 0); }
+          33% { transform: translate(${driftX * 0.5}px, ${driftY * 0.5}px); }
+          66% { transform: translate(${driftX}px, ${driftY * 0.3}px); }
+        }
+        @keyframes spin${i} {
+          from { filter: grayscale(0.3) rotate(0deg); }
+          to { filter: grayscale(0.3) rotate(${rotate > 180 ? 360 : -360}deg); }
+        }
+      `;
+      document.head.appendChild(styleEl);
+      container.appendChild(el);
+      balls.push({ el, styleEl });
+    }
+    return () => {
+      balls.forEach(({ el, styleEl }) => {
+        el.remove();
+        styleEl.remove();
       });
-      dots.forEach(p => {
-        p.x += p.dx; p.y += p.dy;
-        if (p.y < -4) { p.y = H + 4; p.x = Math.random() * W; }
-        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(201,168,76,${p.alpha})`; ctx.fill();
-      });
-      animId = requestAnimationFrame(draw);
     };
-    draw();
-    return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", resize); };
   }, []);
-  return <canvas ref={canvasRef} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0 }} />;
+
+  return (
+    <div ref={containerRef} style={{
+      position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+      pointerEvents: "none", zIndex: 0, overflow: "hidden",
+    }}>
+      {/* Glowing orb backgrounds */}
+      {[
+        { top: "10%", left: "5%", size: 400, color: "rgba(201,168,76,0.05)" },
+        { top: "60%", left: "70%", size: 500, color: "rgba(59,130,246,0.04)" },
+        { top: "30%", left: "85%", size: 300, color: "rgba(201,168,76,0.04)" },
+      ].map((o, i) => (
+        <div key={i} style={{
+          position: "absolute", top: o.top, left: o.left,
+          width: o.size, height: o.size, borderRadius: "50%",
+          background: `radial-gradient(circle, ${o.color} 0%, transparent 70%)`,
+        }} />
+      ))}
+    </div>
+  );
 }
 
 function getMatches(teams) {

@@ -68,24 +68,11 @@ function FootballBackground() {
       const delay = -Math.random() * 20;
       const driftX = (Math.random() - 0.5) * 120;
       const driftY = (Math.random() - 0.5) * 120;
-      const rotateDur = 4 + Math.random() * 8;
       const rotateDir = Math.random() > 0.5 ? 360 : -360;
-      el.style.cssText = `
-        position:absolute;left:${x}%;top:${y}%;font-size:${size}px;
-        opacity:${0.07 + Math.random() * 0.12};
-        animation:simball${i} ${dur}s ${delay}s ease-in-out infinite;
-        pointer-events:none;user-select:none;
-      `;
+      el.style.cssText = `position:absolute;left:${x}%;top:${y}%;font-size:${size}px;opacity:${0.07 + Math.random() * 0.12};animation:simball${i} ${dur}s ${delay}s ease-in-out infinite;pointer-events:none;user-select:none;`;
       el.textContent = "⚽";
       const styleEl = document.createElement("style");
-      styleEl.textContent = `
-        @keyframes simball${i} {
-          0%{transform:translate(0px,0px) rotate(0deg);}
-          25%{transform:translate(${driftX*.4}px,${driftY*.4}px) rotate(${rotateDir*.25}deg);}
-          50%{transform:translate(${driftX}px,${driftY*.6}px) rotate(${rotateDir*.5}deg);}
-          75%{transform:translate(${driftX*.6}px,${driftY}px) rotate(${rotateDir*.75}deg);}
-          100%{transform:translate(0px,0px) rotate(${rotateDir}deg);}
-        }`;
+      styleEl.textContent = `@keyframes simball${i}{0%{transform:translate(0px,0px) rotate(0deg);}25%{transform:translate(${driftX*.4}px,${driftY*.4}px) rotate(${rotateDir*.25}deg);}50%{transform:translate(${driftX}px,${driftY*.6}px) rotate(${rotateDir*.5}deg);}75%{transform:translate(${driftX*.6}px,${driftY}px) rotate(${rotateDir*.75}deg);}100%{transform:translate(0px,0px) rotate(${rotateDir}deg);}}`;
       document.head.appendChild(styleEl);
       container.appendChild(el);
       balls.push({ el, styleEl });
@@ -146,7 +133,7 @@ function GroupCard({ groupId, teams, onQualify }) {
   const upd = (i, f, v) => setMatches(p => p.map((m, j) => j === i ? { ...m, [f]: v } : m));
 
   return (
-    <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.09)", overflow: "hidden", position: "relative", zIndex: 1 }}
+    <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.09)", overflow: "hidden", position: "relative", zIndex: 1, transition: "transform 0.2s, box-shadow 0.2s" }}
       onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 10px 40px rgba(201,168,76,0.1)"; }}
       onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
     >
@@ -203,7 +190,7 @@ function GroupCard({ groupId, teams, onQualify }) {
   );
 }
 
-export default function Simulator({ onBack, onQualify }) {
+export default function Simulator({ onBack, onQualify, onGoBracket }) {
   const [qualifiers, setQualifiers] = useState({});
   const [view, setView] = useState("groups");
   const [shareMsg, setShareMsg] = useState("");
@@ -218,22 +205,19 @@ export default function Simulator({ onBack, onQualify }) {
     });
   }, []);
 
-  // Auto-save when all groups complete
-useEffect(() => {
-  if (done === 12 && user) {
-    savePredictions();
-  }
-}, [qualifiers, user]);
-
   async function savePredictions() {
     if (!user) return;
+    setSaveMsg("Saving...");
     const { error } = await supabase.from("predictions").upsert({
       user_id: user.id,
       predictions: qualifiers,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
     if (!error) {
-      setSaveMsg("✓ Predictions saved!");
+      setSaveMsg("✓ Saved!");
+      setTimeout(() => setSaveMsg(""), 3000);
+    } else {
+      setSaveMsg("Error saving");
       setTimeout(() => setSaveMsg(""), 3000);
     }
   }
@@ -263,6 +247,7 @@ useEffect(() => {
         }
       `}</style>
 
+      {/* Navbar */}
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 16px", height: 54, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, background: "rgba(8,8,18,0.92)", backdropFilter: "blur(16px)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button onClick={onBack} style={{ background: "none", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontFamily: "inherit", fontSize: 12, padding: "5px 10px", borderRadius: 7, cursor: "pointer", whiteSpace: "nowrap" }}>← Home</button>
@@ -270,27 +255,37 @@ useEffect(() => {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {saveMsg && <span style={{ fontSize: 11, color: "#22c55e", fontWeight: 700 }}>{saveMsg}</span>}
-          {!user && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Log in to save</span>}
           <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 16, color: "#c9a84c" }}>{done}/12</span>
           {["groups", "bracket"].map(v => (
             <button key={v} onClick={() => setView(v)} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid", borderColor: view === v ? "#c9a84c" : "rgba(255,255,255,0.12)", background: view === v ? "rgba(201,168,76,0.14)" : "transparent", color: view === v ? "#c9a84c" : "rgba(255,255,255,0.4)", fontFamily: "inherit", fontSize: 9, fontWeight: 700, textTransform: "uppercase", cursor: "pointer", letterSpacing: 1 }}>{v}</button>
           ))}
-          {user && done > 0 && (
-  <button onClick={savePredictions} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #22c55e", background: "rgba(34,197,94,0.15)", color: "#22c55e", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>{saveMsg || "SAVE"}</button>
-)}
-<button onClick={handleShare} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>{shareMsg || "SHARE"}</button>
+          {user && (
+            <button onClick={savePredictions} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #22c55e", background: "rgba(34,197,94,0.15)", color: "#22c55e", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>SAVE</button>
+          )}
+          <button onClick={handleShare} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>{shareMsg || "SHARE"}</button>
         </div>
       </div>
 
+      {/* Progress bar */}
       <div style={{ height: 2, background: "rgba(255,255,255,0.05)", position: "relative", zIndex: 1 }}>
         <div style={{ height: "100%", background: "linear-gradient(90deg,#c9a84c,#e8c96d)", width: `${(done / 12) * 100}%`, transition: "width 0.5s ease" }} />
       </div>
 
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 14px", position: "relative", zIndex: 1 }}>
+
+        {/* Info banners */}
         {!user && (
-          <div style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: "11px 16px", marginBottom: 16, fontSize: 13, color: "rgba(201,168,76,0.8)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span>💡 Log in to save your predictions automatically</span>
+          <div style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: "11px 16px", marginBottom: 14, fontSize: 13, color: "rgba(201,168,76,0.8)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+            <span>💡 Log in to save your predictions</span>
             <button onClick={onBack} style={{ background: "#c9a84c", border: "none", color: "#080812", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "5px 12px", borderRadius: 6, cursor: "pointer" }}>Log in</button>
+          </div>
+        )}
+
+        {/* Skip to bracket banner */}
+        {view === "groups" && (
+          <div style={{ background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 10, padding: "11px 16px", marginBottom: 14, fontSize: 13, color: "rgba(147,197,253,0.8)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+            <span>🏆 Ready for the knockout stage? You can skip ahead even with incomplete groups</span>
+            <button onClick={() => setView("bracket")} style={{ background: "rgba(59,130,246,0.3)", border: "1px solid rgba(59,130,246,0.4)", color: "#93c5fd", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "5px 12px", borderRadius: 6, cursor: "pointer" }}>Go to Bracket →</button>
           </div>
         )}
 
@@ -300,8 +295,15 @@ useEffect(() => {
           </div>
         ) : (
           <div>
-            <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 22, letterSpacing: 3, marginBottom: 16 }}>ROUND OF 32 — QUALIFIERS</h2>
-            {done < 12 && <div style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "rgba(201,168,76,0.8)" }}>⚠️ {12 - done} group{12 - done !== 1 ? "s" : ""} still remaining</div>}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+              <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 22, letterSpacing: 3, margin: 0 }}>ROUND OF 32 — QUALIFIERS</h2>
+              <button onClick={() => setView("groups")} style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.6)", fontFamily: "inherit", fontSize: 12, padding: "6px 14px", borderRadius: 7, cursor: "pointer" }}>← Back to Groups</button>
+            </div>
+            {done < 12 && (
+              <div style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "rgba(201,168,76,0.8)" }}>
+                ⚠️ {12 - done} group{12 - done !== 1 ? "s" : ""} incomplete — those slots show as TBD
+              </div>
+            )}
             <div className="sim-bracket">
               {groupKeys.map(g => {
                 const q = qualifiers[g];
@@ -311,7 +313,14 @@ useEffect(() => {
                     {["first", "second"].map((pos, i) => (
                       <div key={pos} style={{ display: "flex", alignItems: "center", gap: 7, background: q ? "rgba(201,168,76,0.07)" : "rgba(255,255,255,0.03)", border: `1px solid ${q ? "rgba(201,168,76,0.18)" : "rgba(255,255,255,0.06)"}`, borderRadius: 8, padding: "6px 10px", marginBottom: i === 0 ? 4 : 0 }}>
                         <div style={{ width: 3, height: 13, borderRadius: 2, background: i === 0 ? "#22c55e" : "#3b82f6", flexShrink: 0 }} />
-                        {q ? <div style={{ display: "flex", alignItems: "center", gap: 6 }}><Flag team={q[pos]} size={13} /><span style={{ fontSize: 13, fontWeight: 700 }}>{q[pos]}</span></div> : <span style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>TBD</span>}
+                        {q ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <Flag team={q[pos]} size={13} />
+                            <span style={{ fontSize: 13, fontWeight: 700 }}>{q[pos]}</span>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>TBD — complete group {g}</span>
+                        )}
                       </div>
                     ))}
                   </div>

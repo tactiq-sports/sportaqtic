@@ -90,7 +90,37 @@ function TeamSlot({ team, onClick, isWinner, isLoser, isWildcard }) {
 
 const ROUND_NAMES = ["Round of 32", "Round of 16", "Quarter-finals", "Semi-finals", "Final"];
 
-export default function Bracket({ onBack, qualifiers = {}, thirdPlaces = {}, bracketWinners, bracketRounds, onWinnersChange, onRoundsChange }) {
+export default function Bracket({ onBack, qualifiers: qualifiersProp = {}, thirdPlaces: thirdPlacesProp = {}, bracketWinners, bracketRounds, onWinnersChange, onRoundsChange }) {
+  const [qualifiers, setQualifiers] = useState(qualifiersProp);
+  const [thirdPlaces, setThirdPlaces] = useState(thirdPlacesProp);
+
+  // Load from Supabase if qualifiers are empty
+  useEffect(() => {
+    if (Object.keys(qualifiersProp).length > 0) {
+      setQualifiers(qualifiersProp);
+      setThirdPlaces(thirdPlacesProp);
+      return;
+    }
+    // Try loading from Supabase
+    import("./supabase").then(({ supabase }) => {
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
+        if (!session?.user) return;
+        const { data } = await supabase
+          .from("predictions")
+          .select("predictions")
+          .eq("user_id", session.user.id)
+          .single();
+        if (data?.predictions?.qualifiers) {
+          setQualifiers(data.predictions.qualifiers);
+          if (onWinnersChange) onWinnersChange({});
+        }
+        if (data?.predictions?.thirdPlaces) {
+          setThirdPlaces(data.predictions.thirdPlaces);
+        }
+      });
+    });
+  }, [qualifiersProp, thirdPlacesProp]);
+
   const r32 = buildR32(qualifiers, thirdPlaces);
   const best3rd = getBest3rd(thirdPlaces);
   const totalGroups = Object.keys(qualifiers).length;

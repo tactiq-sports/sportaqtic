@@ -1,30 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
-const FLAG_CODES = {
-  "Mexico": "MX", "South Africa": "ZA", "South Korea": "KR", "Czechia": "CZ",
-  "Canada": "CA", "Bosnia and Herzegovina": "BA", "Qatar": "QA", "Switzerland": "CH",
-  "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "GB-SCT",
-  "USA": "US", "Paraguay": "PY", "Australia": "AU", "Türkiye": "TR",
-  "Germany": "DE", "Curaçao": "CW", "Ivory Coast": "CI", "Ecuador": "EC",
-  "Netherlands": "NL", "Japan": "JP", "Sweden": "SE", "Tunisia": "TN",
-  "Belgium": "BE", "Egypt": "EG", "Iran": "IR", "New Zealand": "NZ",
-  "Spain": "ES", "Cape Verde": "CV", "Saudi Arabia": "SA", "Uruguay": "UY",
-  "France": "FR", "Senegal": "SN", "Iraq": "IQ", "Norway": "NO",
-  "Argentina": "AR", "Algeria": "DZ", "Austria": "AT", "Jordan": "JO",
-  "Portugal": "PT", "DR Congo": "CD", "Uzbekistan": "UZ", "Colombia": "CO",
-  "England": "GB-ENG", "Croatia": "HR", "Ghana": "GH", "Panama": "PA",
+const FLAG_EMOJIS = {
+  "Mexico": "🇲🇽", "South Africa": "🇿🇦", "South Korea": "🇰🇷", "Czechia": "🇨🇿",
+  "Canada": "🇨🇦", "Bosnia and Herzegovina": "🇧🇦", "Qatar": "🇶🇦", "Switzerland": "🇨🇭",
+  "Brazil": "🇧🇷", "Morocco": "🇲🇦", "Haiti": "🇭🇹", "Scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "USA": "🇺🇸", "Paraguay": "🇵🇾", "Australia": "🇦🇺", "Türkiye": "🇹🇷",
+  "Germany": "🇩🇪", "Curaçao": "🇨🇼", "Ivory Coast": "🇨🇮", "Ecuador": "🇪🇨",
+  "Netherlands": "🇳🇱", "Japan": "🇯🇵", "Sweden": "🇸🇪", "Tunisia": "🇹🇳",
+  "Belgium": "🇧🇪", "Egypt": "🇪🇬", "Iran": "🇮🇷", "New Zealand": "🇳🇿",
+  "Spain": "🇪🇸", "Cape Verde": "🇨🇻", "Saudi Arabia": "🇸🇦", "Uruguay": "🇺🇾",
+  "France": "🇫🇷", "Senegal": "🇸🇳", "Iraq": "🇮🇶", "Norway": "🇳🇴",
+  "Argentina": "🇦🇷", "Algeria": "🇩🇿", "Austria": "🇦🇹", "Jordan": "🇯🇴",
+  "Portugal": "🇵🇹", "DR Congo": "🇨🇩", "Uzbekistan": "🇺🇿", "Colombia": "🇨🇴",
+  "England": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "Croatia": "🇭🇷", "Ghana": "🇬🇭", "Panama": "🇵🇦",
 };
 
 function FlagImg({ team, size = 16 }) {
-  const code = FLAG_CODES[team];
-  if (!code) return null;
   return (
-    <img
-      src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`}
-      alt={team}
-      crossOrigin="anonymous"
-      style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }}
-    />
+    <span style={{ fontSize: size + 2, lineHeight: 1, flexShrink: 0 }}>
+      {FLAG_EMOJIS[team] || "🏳️"}
+    </span>
   );
 }
 
@@ -43,7 +38,7 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
         backgroundColor: "#0d0d1a",
         scale: 2,
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
       });
       const link = document.createElement("a");
       link.download = "my-worldcup-2026-predictions.png";
@@ -59,10 +54,10 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
     const lines = ["🏆 My FIFA World Cup 2026 Predictions!\n"];
     groupKeys.forEach(g => {
       if (qualifiers[g]) {
-        lines.push(`Group ${g}: ${qualifiers[g].first} | ${qualifiers[g].second}`);
+        lines.push(`Group ${g}: ${FLAG_EMOJIS[qualifiers[g].first] || ""} ${qualifiers[g].first} | ${FLAG_EMOJIS[qualifiers[g].second] || ""} ${qualifiers[g].second}`);
       }
     });
-    if (champion) lines.push(`\n🥇 My Champion: ${champion}`);
+    if (champion) lines.push(`\n🥇 My Champion: ${FLAG_EMOJIS[champion] || ""} ${champion}`);
     lines.push("\nMake your predictions at getsportactiq.com");
     await navigator.clipboard.writeText(lines.join("\n"));
     setCopied(true);
@@ -107,12 +102,12 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
                       <>
                         <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
                           <div style={{ width: 3, height: 10, borderRadius: 1, background: "#22c55e", flexShrink: 0 }} />
-                          <FlagImg team={q.first} size={11} />
+                          <FlagImg team={q.first} size={12} />
                           <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{q.first}</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                           <div style={{ width: 3, height: 10, borderRadius: 1, background: "#3b82f6", flexShrink: 0 }} />
-                          <FlagImg team={q.second} size={11} />
+                          <FlagImg team={q.second} size={12} />
                           <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{q.second}</span>
                         </div>
                       </>
@@ -136,7 +131,7 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
               <div>
                 <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: "rgba(201,168,76,0.6)", letterSpacing: 2, fontWeight: 700 }}>MY WORLD CUP CHAMPION</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                  <FlagImg team={champion} size={18} />
+                  <FlagImg team={champion} size={20} />
                   <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24, color: "#c9a84c", letterSpacing: 2 }}>{champion}</span>
                 </div>
               </div>

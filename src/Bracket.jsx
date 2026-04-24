@@ -79,11 +79,10 @@ function buildR32(qualifiers) {
     { id: "r32_10", home: g("K","first"), away: g("L","second") },
     { id: "r32_11", home: g("J","first"), away: g("I","second") },
     { id: "r32_12", home: g("L","first"), away: g("K","second") },
-    // 3rd place wildcards (simplified)
-    { id: "r32_13", home: null, away: null },
-    { id: "r32_14", home: null, away: null },
-    { id: "r32_15", home: null, away: null },
-    { id: "r32_16", home: null, away: null },
+    { id: "r32_13", home: "Best 3rd (Groups A-D)", away: "Best 3rd (Groups E-H)", wildcard: true },
+{ id: "r32_14", home: "Best 3rd (Groups I-L)", away: "Best 3rd (Groups A-D)", wildcard: true },
+{ id: "r32_15", home: "Best 3rd (Groups E-H)", away: "Best 3rd (Groups I-L)", wildcard: true },
+{ id: "r32_16", home: "Best 3rd (Groups A-D)", away: "Best 3rd (Groups E-H)", wildcard: true },
   ];
 }
 
@@ -185,9 +184,9 @@ export default function Bracket({ onBack, qualifiers = {} }) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
           {rounds[activeRound].map((match, i) => (
             <div key={match.id} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 14 }}>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>
-                MATCH {i + 1}
-              </div>
+              <div style={{ fontSize: 10, color: match.wildcard ? "rgba(59,130,246,0.7)" : "rgba(255,255,255,0.3)", fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>
+  {match.wildcard ? "🔵 WILDCARD SLOT" : `MATCH ${i + 1}`}
+</div>
               <Match
                 home={match.home}
                 away={match.away}

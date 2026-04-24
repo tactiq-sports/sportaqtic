@@ -35,8 +35,7 @@ const FLAG_CODES = {
 function Flag({ team, size = 16 }) {
   const code = FLAG_CODES[team];
   if (!code) return null;
-  const w = Math.round(size * 1.5);
-  return <img src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`} alt={team} style={{ width: w, height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />;
+  return <img src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`} alt={team} style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />;
 }
 
 function Logo({ size = 22 }) {
@@ -130,14 +129,18 @@ function GroupCard({ groupId, teams, onQualify, onMatchesChange, savedMatches })
   const [tab, setTab] = useState("matches");
 
   useEffect(() => {
-    if (savedMatches) setMatches(savedMatches);
+    if (savedMatches) {
+      setMatches(savedMatches);
+    }
   }, [savedMatches]);
 
   const standings = calcStandings(teams, matches);
   const allPlayed = matches.every(m => m.homeScore !== null && m.awayScore !== null);
 
   useEffect(() => {
-    if (allPlayed) onQualify(groupId, standings[0].team, standings[1].team);
+    if (allPlayed) {
+      onQualify(groupId, standings[0].team, standings[1].team, standings);
+    }
   }, [matches]);
 
   function upd(i, f, v) {
@@ -204,8 +207,9 @@ function GroupCard({ groupId, teams, onQualify, onMatchesChange, savedMatches })
   );
 }
 
-export default function Simulator({ onBack, onQualify }) {
+export default function Simulator({ onBack, onQualify, onThirdPlace, onGoBracket }) {
   const [qualifiers, setQualifiers] = useState({});
+  const [thirdPlaces, setThirdPlaces] = useState({});
   const [allMatches, setAllMatches] = useState({});
   const [view, setView] = useState("groups");
   const [shareMsg, setShareMsg] = useState("");
@@ -230,15 +234,15 @@ export default function Simulator({ onBack, onQualify }) {
         if (data?.predictions) {
           const saved = data.predictions;
           if (saved.qualifiers) {
-  setQualifiers(saved.qualifiers);
-  if (onQualify) onQualify(saved.qualifiers);
-}
-if (saved.matches) setAllMatches(saved.matches);
-if (saved.champion) setChampion(saved.champion);
-if (saved.thirdPlaces) {
-  setThirdPlaces(saved.thirdPlaces);
-  if (onThirdPlace) onThirdPlace(saved.thirdPlaces);
-}
+            setQualifiers(saved.qualifiers);
+            if (onQualify) onQualify(saved.qualifiers);
+          }
+          if (saved.matches) setAllMatches(saved.matches);
+          if (saved.champion) setChampion(saved.champion);
+          if (saved.thirdPlaces) {
+            setThirdPlaces(saved.thirdPlaces);
+            if (onThirdPlace) onThirdPlace(saved.thirdPlaces);
+          }
         }
       }
       setLoaded(true);
@@ -262,10 +266,16 @@ if (saved.thirdPlaces) {
     }
   }
 
-  function handleQualify(id, first, second) {
+  function handleQualify(id, first, second, standings) {
     const updated = { ...qualifiers, [id]: { first, second } };
     setQualifiers(updated);
     if (onQualify) onQualify(updated);
+    if (standings && standings[2]) {
+      const third = standings[2];
+      const updatedThird = { ...thirdPlaces, [id]: { team: third.team, pts: third.pts, gf: third.gf, ga: third.ga } };
+      setThirdPlaces(updatedThird);
+      if (onThirdPlace) onThirdPlace(updatedThird);
+    }
   }
 
   function handleMatchesChange(groupId, matches) {
@@ -349,8 +359,8 @@ if (saved.thirdPlaces) {
 
         {view === "groups" && (
           <div style={{ background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 10, padding: "11px 16px", marginBottom: 14, fontSize: 13, color: "rgba(147,197,253,0.8)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-            <span>🏆 Ready for the knockout stage? You can skip ahead even with incomplete groups</span>
-            <button onClick={() => setView("bracket")} style={{ background: "rgba(59,130,246,0.3)", border: "1px solid rgba(59,130,246,0.4)", color: "#93c5fd", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "5px 12px", borderRadius: 6, cursor: "pointer" }}>Go to Bracket →</button>
+            <span>🏆 Ready for the knockout stage? Go to the full bracket to pick your winners!</span>
+            <button onClick={() => onGoBracket ? onGoBracket() : setView("bracket")} style={{ background: "rgba(59,130,246,0.3)", border: "1px solid rgba(59,130,246,0.4)", color: "#93c5fd", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "5px 12px", borderRadius: 6, cursor: "pointer" }}>Go to Bracket →</button>
           </div>
         )}
 

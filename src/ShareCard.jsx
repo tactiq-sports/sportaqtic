@@ -4,7 +4,7 @@ function FlagImg({ team, size = 16 }) {
   const FLAG_CODES = {
     "Mexico": "MX", "South Africa": "ZA", "South Korea": "KR", "Czechia": "CZ",
     "Canada": "CA", "Bosnia and Herzegovina": "BA", "Qatar": "QA", "Switzerland": "CH",
-    "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "GB",
+    "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "SCT",
     "USA": "US", "Paraguay": "PY", "Australia": "AU", "Türkiye": "TR",
     "Germany": "DE", "Curaçao": "CW", "Ivory Coast": "CI", "Ecuador": "EC",
     "Netherlands": "NL", "Japan": "JP", "Sweden": "SE", "Tunisia": "TN",
@@ -13,18 +13,42 @@ function FlagImg({ team, size = 16 }) {
     "France": "FR", "Senegal": "SN", "Iraq": "IQ", "Norway": "NO",
     "Argentina": "AR", "Algeria": "DZ", "Austria": "AT", "Jordan": "JO",
     "Portugal": "PT", "DR Congo": "CD", "Uzbekistan": "UZ", "Colombia": "CO",
-    "England": "GB", "Croatia": "HR", "Ghana": "GH", "Panama": "PA",
+    "England": "ENG", "Croatia": "HR", "Ghana": "GH", "Panama": "PA",
+  };
+  const COLORS = {
+    "MX": "#006847", "ZA": "#007A4D", "KR": "#C60C30", "CZ": "#D7141A",
+    "CA": "#FF0000", "BA": "#002395", "QA": "#8D1B3D", "CH": "#FF0000",
+    "BR": "#009C3B", "MA": "#C1272D", "HT": "#00209F", "SCT": "#005EB8",
+    "US": "#B22234", "PY": "#D52B1E", "AU": "#00008B", "TR": "#E30A17",
+    "DE": "#000000", "CW": "#002B7F", "CI": "#F77F00", "EC": "#FFD100",
+    "NL": "#AE1C28", "JP": "#BC002D", "SE": "#006AA7", "TN": "#E70013",
+    "BE": "#000000", "EG": "#CE1126", "IR": "#239F40", "NZ": "#00247D",
+    "ES": "#AA151B", "CV": "#003893", "SA": "#006C35", "UY": "#5EB6E4",
+    "FR": "#002395", "SN": "#00853F", "IQ": "#CE1126", "NO": "#EF2B2D",
+    "AR": "#74ACDF", "DZ": "#006233", "AT": "#ED2939", "JO": "#007A3D",
+    "PT": "#006600", "CD": "#007FFF", "UZ": "#1EB53A", "CO": "#FCD116",
+    "ENG": "#CF091E", "HR": "#FF0000", "GH": "#006B3F", "PA": "#005293",
   };
   const code = FLAG_CODES[team];
   if (!code) return null;
   return (
-    <img
-      src={`https://flagsapi.com/${code}/flat/32.png`}
-      alt={team}
-      width={Math.round(size * 1.5)}
-      height={size}
-      style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }}
-    />
+    <div style={{
+      width: Math.round(size * 1.5),
+      height: size,
+      borderRadius: 2,
+      background: COLORS[code] || "#333",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      fontSize: size * 0.55,
+      fontWeight: 700,
+      color: "#fff",
+      fontFamily: "sans-serif",
+      letterSpacing: 0,
+    }}>
+      {code.slice(0, 2)}
+    </div>
   );
 }
 

@@ -3,7 +3,7 @@ import { useRef, useState, useEffect } from "react";
 const FLAG_CODES = {
   "Mexico": "MX", "South Africa": "ZA", "South Korea": "KR", "Czechia": "CZ",
   "Canada": "CA", "Bosnia and Herzegovina": "BA", "Qatar": "QA", "Switzerland": "CH",
-  "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "gb-sct",
+  "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "sco-custom",
   "USA": "US", "Paraguay": "PY", "Australia": "AU", "Türkiye": "TR",
   "Germany": "DE", "Curaçao": "CW", "Ivory Coast": "CI", "Ecuador": "EC",
   "Netherlands": "NL", "Japan": "JP", "Sweden": "SE", "Tunisia": "TN",
@@ -69,9 +69,21 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
       await Promise.all([...teamsNeeded].map(async team => {
         const code = FLAG_CODES[team];
         if (!code) return;
-        const url = code === "gb-sct" 
-  ? `https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Flag_of_Scotland.svg/32px-Flag_of_Scotland.svg.png`
-  : `https://flagcdn.com/32x24/${code.toLowerCase()}.png`;
+        if (code === "sco-custom") {
+  // Create Scotland flag using canvas
+  const canvas = document.createElement("canvas");
+  canvas.width = 32; canvas.height = 24;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#003399";
+  ctx.fillRect(0, 0, 32, 24);
+  ctx.strokeStyle = "#FFFFFF";
+  ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(32, 24); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(32, 0); ctx.lineTo(0, 24); ctx.stroke();
+  cache[code] = canvas.toDataURL();
+  return;
+}
+const url = `https://flagcdn.com/32x24/${code.toLowerCase()}.png`;
         const b64 = await toBase64(url);
         if (b64) cache[code] = b64;
       }));

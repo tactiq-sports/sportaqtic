@@ -7,9 +7,27 @@ import Auth from "./Auth.jsx";
 import { supabase } from "./supabase.js";
 
 export default function App() {
-  const [page, setPage] = useState("home");
   const [qualifiers, setQualifiers] = useState({});
   const [user, setUser] = useState(null);
+
+  // Read page from URL hash
+  const hash = window.location.hash.replace("#", "") || "home";
+  const [page, setPage] = useState(hash);
+
+  function navigate(p) {
+    setPage(p);
+    window.location.hash = p;
+  }
+
+  useEffect(() => {
+    // Listen for browser back/forward
+    const onHash = () => {
+      const h = window.location.hash.replace("#", "") || "home";
+      setPage(h);
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -21,9 +39,9 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (page === "auth") return <Auth onBack={() => setPage("home")} onSuccess={() => setPage("home")} />;
-  if (page === "simulator") return <Simulator onBack={() => setPage("home")} onQualify={setQualifiers} />;
-  if (page === "bracket") return <Bracket onBack={() => setPage("home")} qualifiers={qualifiers} />;
-  if (page === "worldcup") return <WorldCup onBack={() => setPage("home")} onNavigate={setPage} />;
-  return <Homepage onNavigate={setPage} user={user} onLogout={() => supabase.auth.signOut()} />;
+  if (page === "auth") return <Auth onBack={() => navigate("home")} onSuccess={() => navigate("home")} />;
+  if (page === "simulator") return <Simulator onBack={() => navigate("home")} onQualify={setQualifiers} />;
+  if (page === "bracket") return <Bracket onBack={() => navigate("home")} qualifiers={qualifiers} />;
+  if (page === "worldcup") return <WorldCup onBack={() => navigate("home")} onNavigate={navigate} />;
+  return <Homepage onNavigate={navigate} user={user} onLogout={() => { supabase.auth.signOut(); navigate("home"); }} />;
 }

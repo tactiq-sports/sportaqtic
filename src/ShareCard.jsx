@@ -1,54 +1,47 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
-function FlagImg({ team, size = 16 }) {
-  const FLAG_CODES = {
-    "Mexico": "MX", "South Africa": "ZA", "South Korea": "KR", "Czechia": "CZ",
-    "Canada": "CA", "Bosnia and Herzegovina": "BA", "Qatar": "QA", "Switzerland": "CH",
-    "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "SCT",
-    "USA": "US", "Paraguay": "PY", "Australia": "AU", "Türkiye": "TR",
-    "Germany": "DE", "Curaçao": "CW", "Ivory Coast": "CI", "Ecuador": "EC",
-    "Netherlands": "NL", "Japan": "JP", "Sweden": "SE", "Tunisia": "TN",
-    "Belgium": "BE", "Egypt": "EG", "Iran": "IR", "New Zealand": "NZ",
-    "Spain": "ES", "Cape Verde": "CV", "Saudi Arabia": "SA", "Uruguay": "UY",
-    "France": "FR", "Senegal": "SN", "Iraq": "IQ", "Norway": "NO",
-    "Argentina": "AR", "Algeria": "DZ", "Austria": "AT", "Jordan": "JO",
-    "Portugal": "PT", "DR Congo": "CD", "Uzbekistan": "UZ", "Colombia": "CO",
-    "England": "ENG", "Croatia": "HR", "Ghana": "GH", "Panama": "PA",
-  };
-  const COLORS = {
-    "MX": "#006847", "ZA": "#007A4D", "KR": "#C60C30", "CZ": "#D7141A",
-    "CA": "#FF0000", "BA": "#002395", "QA": "#8D1B3D", "CH": "#FF0000",
-    "BR": "#009C3B", "MA": "#C1272D", "HT": "#00209F", "SCT": "#005EB8",
-    "US": "#B22234", "PY": "#D52B1E", "AU": "#00008B", "TR": "#E30A17",
-    "DE": "#000000", "CW": "#002B7F", "CI": "#F77F00", "EC": "#FFD100",
-    "NL": "#AE1C28", "JP": "#BC002D", "SE": "#006AA7", "TN": "#E70013",
-    "BE": "#000000", "EG": "#CE1126", "IR": "#239F40", "NZ": "#00247D",
-    "ES": "#AA151B", "CV": "#003893", "SA": "#006C35", "UY": "#5EB6E4",
-    "FR": "#002395", "SN": "#00853F", "IQ": "#CE1126", "NO": "#EF2B2D",
-    "AR": "#74ACDF", "DZ": "#006233", "AT": "#ED2939", "JO": "#007A3D",
-    "PT": "#006600", "CD": "#007FFF", "UZ": "#1EB53A", "CO": "#FCD116",
-    "ENG": "#CF091E", "HR": "#FF0000", "GH": "#006B3F", "PA": "#005293",
-  };
+const FLAG_CODES = {
+  "Mexico": "MX", "South Africa": "ZA", "South Korea": "KR", "Czechia": "CZ",
+  "Canada": "CA", "Bosnia and Herzegovina": "BA", "Qatar": "QA", "Switzerland": "CH",
+  "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "GB-SCT",
+  "USA": "US", "Paraguay": "PY", "Australia": "AU", "Türkiye": "TR",
+  "Germany": "DE", "Curaçao": "CW", "Ivory Coast": "CI", "Ecuador": "EC",
+  "Netherlands": "NL", "Japan": "JP", "Sweden": "SE", "Tunisia": "TN",
+  "Belgium": "BE", "Egypt": "EG", "Iran": "IR", "New Zealand": "NZ",
+  "Spain": "ES", "Cape Verde": "CV", "Saudi Arabia": "SA", "Uruguay": "UY",
+  "France": "FR", "Senegal": "SN", "Iraq": "IQ", "Norway": "NO",
+  "Argentina": "AR", "Algeria": "DZ", "Austria": "AT", "Jordan": "JO",
+  "Portugal": "PT", "DR Congo": "CD", "Uzbekistan": "UZ", "Colombia": "CO",
+  "England": "GB-ENG", "Croatia": "HR", "Ghana": "GH", "Panama": "PA",
+};
+
+async function toBase64(url) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function FlagImg({ team, size = 16, flagCache }) {
   const code = FLAG_CODES[team];
   if (!code) return null;
+  const b64 = flagCache?.[code];
+  if (!b64) return (
+    <div style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, background: "rgba(255,255,255,0.1)", flexShrink: 0 }} />
+  );
   return (
-    <div style={{
-      width: Math.round(size * 1.5),
-      height: size,
-      borderRadius: 2,
-      background: COLORS[code] || "#333",
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0,
-      fontSize: size * 0.55,
-      fontWeight: 700,
-      color: "#fff",
-      fontFamily: "sans-serif",
-      letterSpacing: 0,
-    }}>
-      {code.slice(0, 2)}
-    </div>
+    <img
+      src={b64}
+      alt={team}
+      style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }}
+    />
   );
 }
 
@@ -56,17 +49,45 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
   const cardRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [flagCache, setFlagCache] = useState({});
+  const [flagsLoaded, setFlagsLoaded] = useState(false);
   const groupKeys = Object.keys(qualifiers || {});
 
+  // Get all teams that appear in qualifiers + champion
+  const teamsNeeded = new Set();
+  groupKeys.forEach(g => {
+    if (qualifiers[g]) {
+      teamsNeeded.add(qualifiers[g].first);
+      teamsNeeded.add(qualifiers[g].second);
+    }
+  });
+  if (champion) teamsNeeded.add(champion);
+
+  useEffect(() => {
+    async function loadFlags() {
+      const cache = {};
+      await Promise.all([...teamsNeeded].map(async team => {
+        const code = FLAG_CODES[team];
+        if (!code) return;
+        const url = `https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`;
+        const b64 = await toBase64(url);
+        if (b64) cache[code] = b64;
+      }));
+      setFlagCache(cache);
+      setFlagsLoaded(true);
+    }
+    loadFlags();
+  }, []);
+
   async function downloadImage() {
-    if (!cardRef.current) return;
+    if (!cardRef.current || !flagsLoaded) return;
     setDownloading(true);
     try {
       const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: "#0d0d1a",
         scale: 2,
-        useCORS: true,
+        useCORS: false,
         allowTaint: false,
         imageTimeout: 15000,
         logging: false,
@@ -101,13 +122,7 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
       <div onClick={e => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, maxWidth: 600, width: "100%" }}>
 
         {/* Card to be captured */}
-        <div ref={cardRef} style={{
-          background: "#0d0d1a",
-          borderRadius: 16,
-          padding: 24,
-          width: "100%",
-          fontFamily: "'Bebas Neue', cursive",
-        }}>
+        <div ref={cardRef} style={{ background: "#0d0d1a", borderRadius: 16, padding: 24, width: "100%", fontFamily: "'Bebas Neue', cursive" }}>
           <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap');`}</style>
 
           {/* Header */}
@@ -116,9 +131,7 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
               <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 28, letterSpacing: 3, color: "#c9a84c", lineHeight: 1 }}>WORLD CUP 2026</div>
               <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: 2, marginTop: 2 }}>MY PREDICTIONS</div>
             </div>
-            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 13, color: "rgba(255,255,255,0.3)", letterSpacing: 2, textAlign: "right" }}>
-              GETSPORTACTIQ.COM
-            </div>
+            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 13, color: "rgba(255,255,255,0.3)", letterSpacing: 2, textAlign: "right" }}>GETSPORTACTIQ.COM</div>
           </div>
 
           {/* Groups grid */}
@@ -133,12 +146,12 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
                       <>
                         <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
                           <div style={{ width: 3, height: 10, borderRadius: 1, background: "#22c55e", flexShrink: 0 }} />
-                          <FlagImg team={q.first} size={12} />
+                          <FlagImg team={q.first} size={12} flagCache={flagCache} />
                           <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{q.first}</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                           <div style={{ width: 3, height: 10, borderRadius: 1, background: "#3b82f6", flexShrink: 0 }} />
-                          <FlagImg team={q.second} size={12} />
+                          <FlagImg team={q.second} size={12} flagCache={flagCache} />
                           <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{q.second}</span>
                         </div>
                       </>
@@ -162,7 +175,7 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
               <div>
                 <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: "rgba(201,168,76,0.6)", letterSpacing: 2, fontWeight: 700 }}>MY WORLD CUP CHAMPION</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                  <FlagImg team={champion} size={20} />
+                  <FlagImg team={champion} size={20} flagCache={flagCache} />
                   <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24, color: "#c9a84c", letterSpacing: 2 }}>{champion}</span>
                 </div>
               </div>
@@ -178,9 +191,9 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
 
         {/* Action buttons */}
         <div style={{ display: "flex", gap: 10, width: "100%" }}>
-          <button onClick={downloadImage} disabled={downloading}
-            style={{ flex: 1, background: "#c9a84c", border: "none", color: "#0d0d1a", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 700, padding: "13px", borderRadius: 10, cursor: downloading ? "not-allowed" : "pointer", opacity: downloading ? 0.7 : 1 }}>
-            {downloading ? "Generating..." : "⬇️ Download Image"}
+          <button onClick={downloadImage} disabled={downloading || !flagsLoaded}
+            style={{ flex: 1, background: "#c9a84c", border: "none", color: "#0d0d1a", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 700, padding: "13px", borderRadius: 10, cursor: (downloading || !flagsLoaded) ? "not-allowed" : "pointer", opacity: (downloading || !flagsLoaded) ? 0.7 : 1 }}>
+            {downloading ? "Generating..." : !flagsLoaded ? "Loading flags..." : "⬇️ Download Image"}
           </button>
           <button onClick={copyText}
             style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 600, padding: "13px", borderRadius: 10, cursor: "pointer" }}>
@@ -193,7 +206,7 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
         </div>
 
         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
-          Screenshot or download and share on social media!
+          {flagsLoaded ? "Screenshot or download and share on social media!" : "Loading flag images..."}
         </div>
       </div>
     </div>

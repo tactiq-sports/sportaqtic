@@ -4,13 +4,13 @@ import Simulator from "./Simulator.jsx";
 import Bracket from "./Bracket.jsx";
 import WorldCup from "./WorldCup.jsx";
 import Auth from "./Auth.jsx";
+import Profile from "./Profile.jsx";
 import { supabase } from "./supabase.js";
 
 export default function App() {
   const [qualifiers, setQualifiers] = useState({});
   const [user, setUser] = useState(null);
 
-  // Read page from URL hash
   const hash = window.location.hash.replace("#", "") || "home";
   const [page, setPage] = useState(hash);
 
@@ -20,7 +20,6 @@ export default function App() {
   }
 
   useEffect(() => {
-    // Listen for browser back/forward
     const onHash = () => {
       const h = window.location.hash.replace("#", "") || "home";
       setPage(h);
@@ -43,5 +42,6 @@ export default function App() {
   if (page === "simulator") return <Simulator onBack={() => navigate("home")} onQualify={setQualifiers} />;
   if (page === "bracket") return <Bracket onBack={() => navigate("home")} qualifiers={qualifiers} />;
   if (page === "worldcup") return <WorldCup onBack={() => navigate("home")} onNavigate={navigate} />;
+  if (page === "profile") return <Profile onBack={() => navigate("home")} onNavigate={navigate} user={user} onLogout={() => { supabase.auth.signOut(); navigate("home"); }} />;
   return <Homepage onNavigate={navigate} user={user} onLogout={() => { supabase.auth.signOut(); navigate("home"); }} />;
 }

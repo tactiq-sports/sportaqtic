@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
+import ShareCard from "./ShareCard.jsx";
 
 const GROUPS = {
   A: ["Mexico", "South Africa", "South Korea", "Czechia"],
@@ -72,7 +73,7 @@ function FootballBackground() {
       el.style.cssText = `position:absolute;left:${x}%;top:${y}%;font-size:${size}px;opacity:${0.07 + Math.random() * 0.12};animation:simball${i} ${dur}s ${delay}s ease-in-out infinite;pointer-events:none;user-select:none;`;
       el.textContent = "⚽";
       const styleEl = document.createElement("style");
-      styleEl.textContent = `@keyframes simball${i}{0%{transform:translate(0px,0px) rotate(0deg);}25%{transform:translate(${driftX*.4}px,${driftY*.4}px) rotate(${rotateDir*.25}deg);}50%{transform:translate(${driftX}px,${driftY*.6}px) rotate(${rotateDir*.5}deg);}75%{transform:translate(${driftX*.6}px,${driftY}px) rotate(${rotateDir*.75}deg);}100%{transform:translate(0px,0px) rotate(${rotateDir}deg);}}`;
+      styleEl.textContent = `@keyframes simball${i}{0%{transform:translate(0px,0px) rotate(0deg);}25%{transform:translate(${driftX * .4}px,${driftY * .4}px) rotate(${rotateDir * .25}deg);}50%{transform:translate(${driftX}px,${driftY * .6}px) rotate(${rotateDir * .5}deg);}75%{transform:translate(${driftX * .6}px,${driftY}px) rotate(${rotateDir * .75}deg);}100%{transform:translate(0px,0px) rotate(${rotateDir}deg);}}`;
       document.head.appendChild(styleEl);
       container.appendChild(el);
       balls.push({ el, styleEl });
@@ -128,7 +129,6 @@ function GroupCard({ groupId, teams, onQualify, onMatchesChange, savedMatches })
   const [matches, setMatches] = useState(savedMatches || getMatches(teams));
   const [tab, setTab] = useState("matches");
 
-  // Update matches if savedMatches changes (on load)
   useEffect(() => {
     if (savedMatches) setMatches(savedMatches);
   }, [savedMatches]);
@@ -212,6 +212,8 @@ export default function Simulator({ onBack, onQualify }) {
   const [saveMsg, setSaveMsg] = useState("");
   const [user, setUser] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
+  const [champion, setChampion] = useState("");
   const groupKeys = Object.keys(GROUPS);
   const done = Object.keys(qualifiers).length;
 
@@ -227,15 +229,12 @@ export default function Simulator({ onBack, onQualify }) {
           .single();
         if (data?.predictions) {
           const saved = data.predictions;
-          // Load qualifiers
           if (saved.qualifiers) {
             setQualifiers(saved.qualifiers);
             if (onQualify) onQualify(saved.qualifiers);
           }
-          // Load match scores
-          if (saved.matches) {
-            setAllMatches(saved.matches);
-          }
+          if (saved.matches) setAllMatches(saved.matches);
+          if (saved.champion) setChampion(saved.champion);
         }
       }
       setLoaded(true);
@@ -247,14 +246,14 @@ export default function Simulator({ onBack, onQualify }) {
     setSaveMsg("Saving...");
     const { error } = await supabase.from("predictions").upsert({
       user_id: user.id,
-      predictions: { qualifiers, matches: allMatches },
+      predictions: { qualifiers, matches: allMatches, champion },
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
     if (!error) {
       setSaveMsg("✓ Saved!");
       setTimeout(() => setSaveMsg(""), 3000);
     } else {
-      setSaveMsg("Error saving");
+      setSaveMsg("Error");
       setTimeout(() => setSaveMsg(""), 3000);
     }
   }
@@ -271,6 +270,8 @@ export default function Simulator({ onBack, onQualify }) {
 
   function handleShare() {
     const lines = ["🏆 My FIFA World Cup 2026 Predictions!\n", ...groupKeys.filter(g => qualifiers[g]).map(g => `Group ${g}: ${qualifiers[g].first} | ${qualifiers[g].second}`)];
+    if (champion) lines.push(`\n🥇 My Champion: ${champion}`);
+    lines.push("\nMake your predictions at getsportactiq.com");
     navigator.clipboard.writeText(lines.join("\n")).then(() => { setShareMsg("Copied! ✓"); setTimeout(() => setShareMsg(""), 2500); });
   }
 
@@ -309,13 +310,30 @@ export default function Simulator({ onBack, onQualify }) {
           {user && (
             <button onClick={savePredictions} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #22c55e", background: "rgba(34,197,94,0.15)", color: "#22c55e", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>SAVE</button>
           )}
-          <button onClick={handleShare} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>{shareMsg || "SHARE"}</button>
+          <button onClick={() => setShowShareCard(true)} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>SHARE 🏆</button>
         </div>
       </div>
 
+      {/* Progress bar */}
       <div style={{ height: 2, background: "rgba(255,255,255,0.05)", position: "relative", zIndex: 1 }}>
         <div style={{ height: "100%", background: "linear-gradient(90deg,#c9a84c,#e8c96d)", width: `${(done / 12) * 100}%`, transition: "width 0.5s ease" }} />
       </div>
+
+      {/* Champion picker */}
+      {done > 0 && (
+        <div style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: "10px 16px", margin: "12px 14px 0", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", position: "relative", zIndex: 1 }}>
+          <span style={{ fontSize: 13, color: "rgba(201,168,76,0.8)" }}>🏆 Who wins the World Cup?</span>
+          <select value={champion} onChange={e => setChampion(e.target.value)}
+            style={{ background: "#1a1a2e", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 7, color: champion ? "#fff" : "rgba(255,255,255,0.4)", fontFamily: "inherit", fontSize: 12, padding: "5px 10px", cursor: "pointer", outline: "none" }}>
+            <option value="">Pick your champion...</option>
+            {Object.keys(qualifiers).sort().map(g =>
+              qualifiers[g] && [qualifiers[g].first, qualifiers[g].second].map(team => (
+                <option key={team} value={team}>{team}</option>
+              ))
+            )}
+          </select>
+        </div>
+      )}
 
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 14px", position: "relative", zIndex: 1 }}>
         {!user && (
@@ -382,6 +400,14 @@ export default function Simulator({ onBack, onQualify }) {
           </div>
         )}
       </div>
+
+      {showShareCard && (
+        <ShareCard
+          qualifiers={qualifiers}
+          champion={champion}
+          onClose={() => setShowShareCard(false)}
+        />
+      )}
     </div>
   );
 }

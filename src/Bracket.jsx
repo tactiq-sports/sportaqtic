@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const FLAG_CODES = {
   "Mexico": "MX", "South Africa": "ZA", "South Korea": "KR", "Czechia": "CZ",
@@ -21,26 +21,64 @@ function Flag({ team, size = 16 }) {
   return <img src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`} alt={team} style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />;
 }
 
-function TeamSlot({ team, onClick, isWinner, isLoser }) {
+function getBest3rd(thirdPlaces) {
+  const teams = Object.values(thirdPlaces).filter(Boolean);
+  return teams
+    .sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf)
+    .slice(0, 8);
+}
+
+function buildR32(qualifiers, thirdPlaces) {
+  const g = (id, pos) => qualifiers[id]?.[pos] || null;
+  const best3rd = getBest3rd(thirdPlaces);
+  const t = (i) => best3rd[i]?.team || null;
+  return [
+    { id: "r32_1", home: g("A","first"), away: g("B","second") },
+    { id: "r32_2", home: g("C","first"), away: g("D","second") },
+    { id: "r32_3", home: g("E","first"), away: g("F","second") },
+    { id: "r32_4", home: g("G","first"), away: g("H","second") },
+    { id: "r32_5", home: g("B","first"), away: g("A","second") },
+    { id: "r32_6", home: g("D","first"), away: g("C","second") },
+    { id: "r32_7", home: g("F","first"), away: g("E","second") },
+    { id: "r32_8", home: g("H","first"), away: g("G","second") },
+    { id: "r32_9", home: g("I","first"), away: g("J","second") },
+    { id: "r32_10", home: g("K","first"), away: g("L","second") },
+    { id: "r32_11", home: g("J","first"), away: g("I","second") },
+    { id: "r32_12", home: g("L","first"), away: g("K","second") },
+    { id: "r32_13", home: t(0), away: t(1), wildcard: true },
+    { id: "r32_14", home: t(2), away: t(3), wildcard: true },
+    { id: "r32_15", home: t(4), away: t(5), wildcard: true },
+    { id: "r32_16", home: t(6), away: t(7), wildcard: true },
+  ];
+}
+
+function initRounds(r32) {
+  return {
+    0: r32,
+    1: Array.from({ length: 8 }, (_, i) => ({ id: `r16_${i}`, home: null, away: null })),
+    2: Array.from({ length: 4 }, (_, i) => ({ id: `qf_${i}`, home: null, away: null })),
+    3: Array.from({ length: 2 }, (_, i) => ({ id: `sf_${i}`, home: null, away: null })),
+    4: [{ id: "final", home: null, away: null }],
+  };
+}
+
+function TeamSlot({ team, onClick, isWinner, isLoser, isWildcard }) {
   return (
-    <div onClick={team ? onClick : undefined}
+    <div onClick={team && !isWildcard ? onClick : undefined}
       style={{
-        display: "flex", alignItems: "center", gap: 8,
-        padding: "7px 10px", borderRadius: 7,
-        background: isWinner ? "rgba(201,168,76,0.15)" : "rgba(255,255,255,0.03)",
-        border: `1px solid ${isWinner ? "rgba(201,168,76,0.4)" : "rgba(255,255,255,0.08)"}`,
-        cursor: team ? "pointer" : "default",
-        opacity: isLoser ? 0.35 : 1,
-        transition: "all 0.15s",
-        minWidth: 160,
+        display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 7,
+        background: isWinner ? "rgba(201,168,76,0.15)" : isWildcard ? "rgba(59,130,246,0.07)" : "rgba(255,255,255,0.03)",
+        border: `1px solid ${isWinner ? "rgba(201,168,76,0.4)" : isWildcard ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.08)"}`,
+        cursor: team && !isWildcard ? "pointer" : "default",
+        opacity: isLoser ? 0.35 : 1, transition: "all 0.15s", minWidth: 160,
       }}
-      onMouseEnter={e => { if (team && !isWinner) e.currentTarget.style.borderColor = "rgba(201,168,76,0.3)"; }}
-      onMouseLeave={e => { if (!isWinner) e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
+      onMouseEnter={e => { if (team && !isWinner && !isWildcard) e.currentTarget.style.borderColor = "rgba(201,168,76,0.3)"; }}
+      onMouseLeave={e => { if (!isWinner) e.currentTarget.style.borderColor = isWildcard ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.08)"; }}
     >
       {team ? (
         <>
-          <Flag team={team} size={13} />
-          <span style={{ fontSize: 12, fontWeight: isWinner ? 700 : 500, color: isWinner ? "#c9a84c" : "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{team}</span>
+          {isWildcard ? <span style={{ fontSize: 11 }}>🔵</span> : <Flag team={team} size={13} />}
+          <span style={{ fontSize: 12, fontWeight: isWinner ? 700 : 500, color: isWinner ? "#c9a84c" : isWildcard ? "#93c5fd" : "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{team}</span>
           {isWinner && <span style={{ marginLeft: "auto", fontSize: 10, color: "#c9a84c" }}>✓</span>}
         </>
       ) : (
@@ -50,73 +88,51 @@ function TeamSlot({ team, onClick, isWinner, isLoser }) {
   );
 }
 
-function Match({ home, away, winner, onPick, round }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <TeamSlot team={home} onClick={() => onPick(home)} isWinner={winner === home} isLoser={winner && winner !== home} />
-      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", textAlign: "center", letterSpacing: 1 }}>VS</div>
-      <TeamSlot team={away} onClick={() => onPick(away)} isWinner={winner === away} isLoser={winner && winner !== away} />
-    </div>
-  );
-}
-
-// Build R32 matchups from group qualifiers
-// Official FIFA 2026 R32 bracket pairing pattern
-function buildR32(qualifiers) {
-  const g = (id, pos) => qualifiers[id]?.[pos] || null;
-  return [
-    // Bracket Left side
-    { id: "r32_1", home: g("A","first"), away: g("B","second") },
-    { id: "r32_2", home: g("C","first"), away: g("D","second") },
-    { id: "r32_3", home: g("E","first"), away: g("F","second") },
-    { id: "r32_4", home: g("G","first"), away: g("H","second") },
-    // Bracket Right side
-    { id: "r32_5", home: g("B","first"), away: g("A","second") },
-    { id: "r32_6", home: g("D","first"), away: g("C","second") },
-    { id: "r32_7", home: g("F","first"), away: g("E","second") },
-    { id: "r32_8", home: g("H","first"), away: g("G","second") },
-    { id: "r32_9", home: g("I","first"), away: g("J","second") },
-    { id: "r32_10", home: g("K","first"), away: g("L","second") },
-    { id: "r32_11", home: g("J","first"), away: g("I","second") },
-    { id: "r32_12", home: g("L","first"), away: g("K","second") },
-    { id: "r32_13", home: "Best 3rd (Groups A-D)", away: "Best 3rd (Groups E-H)", wildcard: true },
-{ id: "r32_14", home: "Best 3rd (Groups I-L)", away: "Best 3rd (Groups A-D)", wildcard: true },
-{ id: "r32_15", home: "Best 3rd (Groups E-H)", away: "Best 3rd (Groups I-L)", wildcard: true },
-{ id: "r32_16", home: "Best 3rd (Groups A-D)", away: "Best 3rd (Groups E-H)", wildcard: true },
-  ];
-}
-
 const ROUND_NAMES = ["Round of 32", "Round of 16", "Quarter-finals", "Semi-finals", "Final"];
 
-export default function Bracket({ onBack, qualifiers = {} }) {
-  const r32 = buildR32(qualifiers);
+export default function Bracket({ onBack, qualifiers = {}, thirdPlaces = {}, bracketWinners, bracketRounds, onWinnersChange, onRoundsChange }) {
+  const r32 = buildR32(qualifiers, thirdPlaces);
+  const best3rd = getBest3rd(thirdPlaces);
   const totalGroups = Object.keys(qualifiers).length;
 
-  // rounds[0] = R32 (16 matches), rounds[1] = R16 (8), rounds[2] = QF (4), rounds[3] = SF (2), rounds[4] = Final (1)
-  const [rounds, setRounds] = useState({
-    0: r32,
-    1: Array.from({ length: 8 }, (_, i) => ({ id: `r16_${i}`, home: null, away: null })),
-    2: Array.from({ length: 4 }, (_, i) => ({ id: `qf_${i}`, home: null, away: null })),
-    3: Array.from({ length: 2 }, (_, i) => ({ id: `sf_${i}`, home: null, away: null })),
-    4: [{ id: "final", home: null, away: null }],
-  });
-  const [winners, setWinners] = useState({});
+  // Use lifted state from App if available, otherwise init locally
+  const [localWinners, setLocalWinners] = useState({});
+  const [localRounds, setLocalRounds] = useState(() => initRounds(r32));
   const [activeRound, setActiveRound] = useState(0);
 
+  const winners = bracketWinners && Object.keys(bracketWinners).length > 0 ? bracketWinners : localWinners;
+  const rounds = bracketRounds || localRounds;
+
+  // Update R32 when qualifiers change
+  useEffect(() => {
+    const newR32 = buildR32(qualifiers, thirdPlaces);
+    const updatedRounds = { ...rounds, 0: newR32 };
+    if (onRoundsChange) onRoundsChange(updatedRounds);
+    else setLocalRounds(updatedRounds);
+  }, [qualifiers, thirdPlaces]);
+
+  function setWinners(fn) {
+    const updated = typeof fn === "function" ? fn(winners) : fn;
+    if (onWinnersChange) onWinnersChange(updated);
+    else setLocalWinners(updated);
+  }
+
+  function setRounds(fn) {
+    const updated = typeof fn === "function" ? fn(rounds) : fn;
+    if (onRoundsChange) onRoundsChange(updated);
+    else setLocalRounds(updated);
+  }
+
   function pickWinner(roundIdx, matchIdx, team) {
+    if (!team) return;
     const matchId = rounds[roundIdx][matchIdx].id;
     setWinners(w => ({ ...w, [matchId]: team }));
-
-    // Advance winner to next round
     if (roundIdx < 4) {
       const nextMatchIdx = Math.floor(matchIdx / 2);
       const isHome = matchIdx % 2 === 0;
       setRounds(prev => {
         const next = [...prev[roundIdx + 1]];
-        next[nextMatchIdx] = {
-          ...next[nextMatchIdx],
-          [isHome ? "home" : "away"]: team,
-        };
+        next[nextMatchIdx] = { ...next[nextMatchIdx], [isHome ? "home" : "away"]: team };
         return { ...prev, [roundIdx + 1]: next };
       });
     }
@@ -128,12 +144,8 @@ export default function Bracket({ onBack, qualifiers = {} }) {
     <div style={{ minHeight: "100vh", background: "#080812", fontFamily: "'DM Sans',sans-serif", color: "#fff" }}>
       <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-      {/* Animated background orbs */}
       <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
-        {[
-          { top: "10%", left: "5%", w: 400, color: "rgba(201,168,76,0.05)" },
-          { top: "60%", left: "70%", w: 500, color: "rgba(59,130,246,0.04)" },
-        ].map((o, i) => (
+        {[{ top: "10%", left: "5%", w: 400, color: "rgba(201,168,76,0.05)" }, { top: "60%", left: "70%", w: 500, color: "rgba(59,130,246,0.04)" }].map((o, i) => (
           <div key={i} style={{ position: "absolute", top: o.top, left: o.left, width: o.w, height: o.w, borderRadius: "50%", background: `radial-gradient(circle,${o.color} 0%,transparent 70%)` }} />
         ))}
       </div>
@@ -164,8 +176,23 @@ export default function Bracket({ onBack, qualifiers = {} }) {
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: "24px 18px", position: "relative", zIndex: 1 }}>
 
         {totalGroups < 12 && (
-          <div style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: "14px 18px", marginBottom: 24, fontSize: 13, color: "rgba(201,168,76,0.8)" }}>
-            ⚠️ You've only completed {totalGroups}/12 groups in the simulator. Go back and finish the group stage to fill all bracket slots automatically.
+          <div style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: "14px 18px", marginBottom: 20, fontSize: 13, color: "rgba(201,168,76,0.8)" }}>
+            ⚠️ {totalGroups}/12 groups complete — finish the simulator to fill all bracket slots automatically.
+          </div>
+        )}
+
+        {best3rd.length > 0 && (
+          <div style={{ background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 12 }}>
+            <div style={{ color: "#93c5fd", fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>🔵 BEST 3RD PLACE TEAMS ({best3rd.length}/8 qualified)</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {best3rd.map((t, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 6, padding: "3px 8px" }}>
+                  <Flag team={t.team} size={12} />
+                  <span style={{ fontSize: 11, color: "#93c5fd", fontWeight: 600 }}>{t.team}</span>
+                  <span style={{ fontSize: 10, color: "rgba(147,197,253,0.5)" }}>{t.pts}pts</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -180,30 +207,26 @@ export default function Bracket({ onBack, qualifiers = {} }) {
           ))}
         </div>
 
-        {/* Matches grid */}
+        {/* Matches */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
           {rounds[activeRound].map((match, i) => (
-            <div key={match.id} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 14 }}>
-              <div style={{ fontSize: 10, color: match.wildcard ? "rgba(59,130,246,0.7)" : "rgba(255,255,255,0.3)", fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>
-  {match.wildcard ? "🔵 WILDCARD SLOT" : `MATCH ${i + 1}`}
-</div>
-              <Match
-                home={match.home}
-                away={match.away}
-                winner={winners[match.id]}
-                onPick={(team) => pickWinner(activeRound, i, team)}
-                round={activeRound}
-              />
-              {match.home && match.away && !winners[match.id] && (
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 8 }}>
-                  Click a team to advance them
-                </div>
+            <div key={match.id} style={{ background: match.wildcard ? "rgba(59,130,246,0.05)" : "rgba(255,255,255,0.03)", border: `1px solid ${match.wildcard ? "rgba(59,130,246,0.15)" : "rgba(255,255,255,0.07)"}`, borderRadius: 14, padding: 14 }}>
+              <div style={{ fontSize: 10, color: match.wildcard ? "rgba(147,197,253,0.7)" : "rgba(255,255,255,0.3)", fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>
+                {match.wildcard ? "🔵 BEST 3RD PLACE" : `MATCH ${i + 1}`}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                <TeamSlot team={match.home} onClick={() => pickWinner(activeRound, i, match.home)} isWinner={winners[match.id] === match.home} isLoser={winners[match.id] && winners[match.id] !== match.home} isWildcard={match.wildcard} />
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", textAlign: "center", letterSpacing: 1 }}>VS</div>
+                <TeamSlot team={match.away} onClick={() => pickWinner(activeRound, i, match.away)} isWinner={winners[match.id] === match.away} isLoser={winners[match.id] && winners[match.id] !== match.away} isWildcard={match.wildcard} />
+              </div>
+              {match.home && match.away && !winners[match.id] && !match.wildcard && (
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 8 }}>Click a team to advance</div>
               )}
             </div>
           ))}
         </div>
 
-        {/* Final champion display */}
+        {/* Champion */}
         {activeRound === 4 && champion && (
           <div style={{ marginTop: 32, textAlign: "center", padding: 40, background: "linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.04))", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 20 }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>🏆</div>

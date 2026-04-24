@@ -3,7 +3,7 @@ import { useRef, useState, useEffect } from "react";
 const FLAG_CODES = {
   "Mexico": "MX", "South Africa": "ZA", "South Korea": "KR", "Czechia": "CZ",
   "Canada": "CA", "Bosnia and Herzegovina": "BA", "Qatar": "QA", "Switzerland": "CH",
-  "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "gb",
+  "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "gb-sct",
   "USA": "US", "Paraguay": "PY", "Australia": "AU", "Türkiye": "TR",
   "Germany": "DE", "Curaçao": "CW", "Ivory Coast": "CI", "Ecuador": "EC",
   "Netherlands": "NL", "Japan": "JP", "Sweden": "SE", "Tunisia": "TN",
@@ -69,7 +69,9 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
       await Promise.all([...teamsNeeded].map(async team => {
         const code = FLAG_CODES[team];
         if (!code) return;
-        const url = `https://flagcdn.com/32x24/${code.toLowerCase()}.png`;
+        const url = code === "gb-sct" 
+  ? `https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Flag_of_Scotland.svg/32px-Flag_of_Scotland.svg.png`
+  : `https://flagcdn.com/32x24/${code.toLowerCase()}.png`;
         const b64 = await toBase64(url);
         if (b64) cache[code] = b64;
       }));

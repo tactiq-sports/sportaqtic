@@ -101,7 +101,7 @@ function useCountdown() {
 
 const FEATURES = [
   { icon: "⚽", title: "Group Stage Simulator", desc: "Predict every match across all 12 groups. Standings update live.", tag: "Live now", tagColor: G, link: true },
-  { icon: "🏆", title: "Knockout Bracket", desc: "Pick winners round by round from R32 to the Final.", tag: "Coming soon", tagColor: "#4b5563", link: false },
+  { icon: "🏆", title: "Knockout Bracket", desc: "Pick winners round by round from R32 to the Final.", tag: "Live now", tagColor: G, link: true, page: "bracket" },
   { icon: "🤖", title: "AI Match Previews", desc: "AI-generated tactical breakdowns before every game.", tag: "Coming soon", tagColor: "#4b5563", link: false },
   { icon: "👥", title: "Private Prediction Leagues", desc: "Compete with friends in a private prediction league.", tag: "Premium", tagColor: G, link: false },
   { icon: "📊", title: "Player Stats Tracker", desc: "Goals, assists, ratings and more for every player.", tag: "Coming soon", tagColor: "#4b5563", link: false },
@@ -297,7 +297,7 @@ export default function Homepage({ onNavigate, user, onLogout }) {
           </div>
           <div className="features-grid">
             {FEATURES.map((f, i) => (
-              <div key={i} onClick={() => f.link && onNavigate("simulator")}
+              <div key={i} onClick={() => f.link && onNavigate(f.page || "simulator")}
                 style={{ background: hovered === i ? "rgba(16,185,129,0.07)" : "rgba(255,255,255,0.02)", border: `1px solid ${hovered === i ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.06)"}`, borderRadius: 18, padding: 24, cursor: f.link ? "pointer" : "default", transition: "all 0.2s" }}
                 onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
               >

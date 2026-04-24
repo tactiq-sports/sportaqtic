@@ -230,11 +230,15 @@ export default function Simulator({ onBack, onQualify }) {
         if (data?.predictions) {
           const saved = data.predictions;
           if (saved.qualifiers) {
-            setQualifiers(saved.qualifiers);
-            if (onQualify) onQualify(saved.qualifiers);
-          }
-          if (saved.matches) setAllMatches(saved.matches);
-          if (saved.champion) setChampion(saved.champion);
+  setQualifiers(saved.qualifiers);
+  if (onQualify) onQualify(saved.qualifiers);
+}
+if (saved.matches) setAllMatches(saved.matches);
+if (saved.champion) setChampion(saved.champion);
+if (saved.thirdPlaces) {
+  setThirdPlaces(saved.thirdPlaces);
+  if (onThirdPlace) onThirdPlace(saved.thirdPlaces);
+}
         }
       }
       setLoaded(true);
@@ -246,7 +250,7 @@ export default function Simulator({ onBack, onQualify }) {
     setSaveMsg("Saving...");
     const { error } = await supabase.from("predictions").upsert({
       user_id: user.id,
-      predictions: { qualifiers, matches: allMatches, champion },
+      predictions: { qualifiers, matches: allMatches, champion, thirdPlaces },
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
     if (!error) {

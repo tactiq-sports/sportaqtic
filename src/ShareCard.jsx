@@ -3,7 +3,7 @@ import { useRef, useState, useEffect } from "react";
 const FLAG_CODES = {
   "Mexico": "MX", "South Africa": "ZA", "South Korea": "KR", "Czechia": "CZ",
   "Canada": "CA", "Bosnia and Herzegovina": "BA", "Qatar": "QA", "Switzerland": "CH",
-  "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "GB-SCT",
+  "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "gb",
   "USA": "US", "Paraguay": "PY", "Australia": "AU", "Türkiye": "TR",
   "Germany": "DE", "Curaçao": "CW", "Ivory Coast": "CI", "Ecuador": "EC",
   "Netherlands": "NL", "Japan": "JP", "Sweden": "SE", "Tunisia": "TN",
@@ -12,7 +12,7 @@ const FLAG_CODES = {
   "France": "FR", "Senegal": "SN", "Iraq": "IQ", "Norway": "NO",
   "Argentina": "AR", "Algeria": "DZ", "Austria": "AT", "Jordan": "JO",
   "Portugal": "PT", "DR Congo": "CD", "Uzbekistan": "UZ", "Colombia": "CO",
-  "England": "GB-ENG", "Croatia": "HR", "Ghana": "GH", "Panama": "PA",
+  "England": "gb", "Croatia": "HR", "Ghana": "GH", "Panama": "PA",
 };
 
 async function toBase64(url) {
@@ -69,7 +69,7 @@ export default function ShareCard({ qualifiers, champion, onClose }) {
       await Promise.all([...teamsNeeded].map(async team => {
         const code = FLAG_CODES[team];
         if (!code) return;
-        const url = `https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`;
+        const url = `https://flagcdn.com/32x24/${code.toLowerCase()}.png`;
         const b64 = await toBase64(url);
         if (b64) cache[code] = b64;
       }));

@@ -9,6 +9,9 @@ import { supabase } from "./supabase.js";
 
 export default function App() {
   const [qualifiers, setQualifiers] = useState({});
+  const [thirdPlaces, setThirdPlaces] = useState({});
+  const [bracketWinners, setBracketWinners] = useState({});
+  const [bracketRounds, setBracketRounds] = useState(null);
   const [user, setUser] = useState(null);
 
   const hash = window.location.hash.replace("#", "") || "home";
@@ -39,8 +42,25 @@ export default function App() {
   }, []);
 
   if (page === "auth") return <Auth onBack={() => navigate("home")} onSuccess={() => navigate("home")} />;
-  if (page === "simulator") return <Simulator onBack={() => navigate("home")} onQualify={setQualifiers} />;
-  if (page === "bracket") return <Bracket onBack={() => navigate("home")} qualifiers={qualifiers} />;
+  if (page === "simulator") return (
+    <Simulator
+      onBack={() => navigate("home")}
+      onQualify={setQualifiers}
+      onThirdPlace={setThirdPlaces}
+      onGoBracket={() => navigate("bracket")}
+    />
+  );
+  if (page === "bracket") return (
+    <Bracket
+      onBack={() => navigate("home")}
+      qualifiers={qualifiers}
+      thirdPlaces={thirdPlaces}
+      bracketWinners={bracketWinners}
+      bracketRounds={bracketRounds}
+      onWinnersChange={setBracketWinners}
+      onRoundsChange={setBracketRounds}
+    />
+  );
   if (page === "worldcup") return <WorldCup onBack={() => navigate("home")} onNavigate={navigate} />;
   if (page === "profile") return <Profile onBack={() => navigate("home")} onNavigate={navigate} user={user} onLogout={() => { supabase.auth.signOut(); navigate("home"); }} />;
   return <Homepage onNavigate={navigate} user={user} onLogout={() => { supabase.auth.signOut(); navigate("home"); }} />;

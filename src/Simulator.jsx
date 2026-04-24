@@ -200,10 +200,22 @@ export default function Simulator({ onBack, onQualify, onGoBracket }) {
   const done = Object.keys(qualifiers).length;
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-  }, []);
+  supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const u = session?.user ?? null;
+    setUser(u);
+    if (u) {
+      const { data } = await supabase
+        .from("predictions")
+        .select("predictions")
+        .eq("user_id", u.id)
+        .single();
+      if (data?.predictions) {
+        setQualifiers(data.predictions);
+        if (onQualify) onQualify(data.predictions);
+      }
+    }
+  });
+}, []);
 
   async function savePredictions() {
     if (!user) return;

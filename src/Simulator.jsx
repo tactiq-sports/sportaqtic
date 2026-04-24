@@ -124,13 +124,27 @@ function ScoreInput({ value, onChange }) {
   );
 }
 
-function GroupCard({ groupId, teams, onQualify }) {
-  const [matches, setMatches] = useState(getMatches(teams));
+function GroupCard({ groupId, teams, onQualify, onMatchesChange, savedMatches }) {
+  const [matches, setMatches] = useState(savedMatches || getMatches(teams));
   const [tab, setTab] = useState("matches");
+
+  // Update matches if savedMatches changes (on load)
+  useEffect(() => {
+    if (savedMatches) setMatches(savedMatches);
+  }, [savedMatches]);
+
   const standings = calcStandings(teams, matches);
   const allPlayed = matches.every(m => m.homeScore !== null && m.awayScore !== null);
-  useEffect(() => { if (allPlayed) onQualify(groupId, standings[0].team, standings[1].team); }, [matches]);
-  const upd = (i, f, v) => setMatches(p => p.map((m, j) => j === i ? { ...m, [f]: v } : m));
+
+  useEffect(() => {
+    if (allPlayed) onQualify(groupId, standings[0].team, standings[1].team);
+  }, [matches]);
+
+  function upd(i, f, v) {
+    const updated = matches.map((m, j) => j === i ? { ...m, [f]: v } : m);
+    setMatches(updated);
+    onMatchesChange(groupId, updated);
+  }
 
   return (
     <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.09)", overflow: "hidden", position: "relative", zIndex: 1, transition: "transform 0.2s, box-shadow 0.2s" }}
@@ -190,42 +204,50 @@ function GroupCard({ groupId, teams, onQualify }) {
   );
 }
 
-export default function Simulator({ onBack, onQualify, onGoBracket }) {
+export default function Simulator({ onBack, onQualify }) {
   const [qualifiers, setQualifiers] = useState({});
+  const [allMatches, setAllMatches] = useState({});
   const [view, setView] = useState("groups");
   const [shareMsg, setShareMsg] = useState("");
   const [saveMsg, setSaveMsg] = useState("");
   const [user, setUser] = useState(null);
+  const [loaded, setLoaded] = useState(false);
   const groupKeys = Object.keys(GROUPS);
   const done = Object.keys(qualifiers).length;
 
   useEffect(() => {
-  supabase.auth.getSession().then(async ({ data: { session } }) => {
-    const u = session?.user ?? null;
-    console.log("User:", u?.id);
-    setUser(u);
-    if (u) {
-      const { data, error } = await supabase
-        .from("predictions")
-        .select("predictions")
-        .eq("user_id", u.id)
-        .single();
-      console.log("Predictions data:", data);
-      console.log("Predictions error:", error);
-      if (data?.predictions) {
-        setQualifiers(data.predictions);
-        if (onQualify) onQualify(data.predictions);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u) {
+        const { data } = await supabase
+          .from("predictions")
+          .select("predictions")
+          .eq("user_id", u.id)
+          .single();
+        if (data?.predictions) {
+          const saved = data.predictions;
+          // Load qualifiers
+          if (saved.qualifiers) {
+            setQualifiers(saved.qualifiers);
+            if (onQualify) onQualify(saved.qualifiers);
+          }
+          // Load match scores
+          if (saved.matches) {
+            setAllMatches(saved.matches);
+          }
+        }
       }
-    }
-  });
-}, []);
+      setLoaded(true);
+    });
+  }, []);
 
   async function savePredictions() {
     if (!user) return;
     setSaveMsg("Saving...");
     const { error } = await supabase.from("predictions").upsert({
       user_id: user.id,
-      predictions: qualifiers,
+      predictions: { qualifiers, matches: allMatches },
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
     if (!error) {
@@ -243,10 +265,20 @@ export default function Simulator({ onBack, onQualify, onGoBracket }) {
     if (onQualify) onQualify(updated);
   }
 
+  function handleMatchesChange(groupId, matches) {
+    setAllMatches(prev => ({ ...prev, [groupId]: matches }));
+  }
+
   function handleShare() {
     const lines = ["🏆 My FIFA World Cup 2026 Predictions!\n", ...groupKeys.filter(g => qualifiers[g]).map(g => `Group ${g}: ${qualifiers[g].first} | ${qualifiers[g].second}`)];
     navigator.clipboard.writeText(lines.join("\n")).then(() => { setShareMsg("Copied! ✓"); setTimeout(() => setShareMsg(""), 2500); });
   }
+
+  if (!loaded) return (
+    <div style={{ minHeight: "100vh", background: "#080812", display: "flex", alignItems: "center", justifyContent: "center", color: "#c9a84c", fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: 3 }}>
+      LOADING...
+    </div>
+  );
 
   return (
     <div style={{ minHeight: "100vh", background: "#080812", fontFamily: "'DM Sans',sans-serif", color: "#fff", position: "relative", overflowX: "hidden" }}>
@@ -281,14 +313,11 @@ export default function Simulator({ onBack, onQualify, onGoBracket }) {
         </div>
       </div>
 
-      {/* Progress bar */}
       <div style={{ height: 2, background: "rgba(255,255,255,0.05)", position: "relative", zIndex: 1 }}>
         <div style={{ height: "100%", background: "linear-gradient(90deg,#c9a84c,#e8c96d)", width: `${(done / 12) * 100}%`, transition: "width 0.5s ease" }} />
       </div>
 
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 14px", position: "relative", zIndex: 1 }}>
-
-        {/* Info banners */}
         {!user && (
           <div style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: "11px 16px", marginBottom: 14, fontSize: 13, color: "rgba(201,168,76,0.8)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
             <span>💡 Log in to save your predictions</span>
@@ -296,7 +325,6 @@ export default function Simulator({ onBack, onQualify, onGoBracket }) {
           </div>
         )}
 
-        {/* Skip to bracket banner */}
         {view === "groups" && (
           <div style={{ background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 10, padding: "11px 16px", marginBottom: 14, fontSize: 13, color: "rgba(147,197,253,0.8)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
             <span>🏆 Ready for the knockout stage? You can skip ahead even with incomplete groups</span>
@@ -306,7 +334,16 @@ export default function Simulator({ onBack, onQualify, onGoBracket }) {
 
         {view === "groups" ? (
           <div className="sim-groups">
-            {groupKeys.map(g => <GroupCard key={g} groupId={g} teams={GROUPS[g]} onQualify={handleQualify} />)}
+            {groupKeys.map(g => (
+              <GroupCard
+                key={g}
+                groupId={g}
+                teams={GROUPS[g]}
+                onQualify={handleQualify}
+                onMatchesChange={handleMatchesChange}
+                savedMatches={allMatches[g]}
+              />
+            ))}
           </div>
         ) : (
           <div>

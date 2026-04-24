@@ -202,13 +202,16 @@ export default function Simulator({ onBack, onQualify, onGoBracket }) {
   useEffect(() => {
   supabase.auth.getSession().then(async ({ data: { session } }) => {
     const u = session?.user ?? null;
+    console.log("User:", u?.id);
     setUser(u);
     if (u) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("predictions")
         .select("predictions")
         .eq("user_id", u.id)
         .single();
+      console.log("Predictions data:", data);
+      console.log("Predictions error:", error);
       if (data?.predictions) {
         setQualifiers(data.predictions);
         if (onQualify) onQualify(data.predictions);

@@ -19,7 +19,7 @@ const GROUPS = {
 const FLAG_CODES = {
   "Mexico": "MX", "South Africa": "ZA", "South Korea": "KR", "Czechia": "CZ",
   "Canada": "CA", "Bosnia and Herzegovina": "BA", "Qatar": "QA", "Switzerland": "CH",
-  "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "GB-SCT",
+  "Brazil": "BR", "Morocco": "MA", "Haiti": "HT", "Scotland": "gb-sct",
   "USA": "US", "Paraguay": "PY", "Australia": "AU", "Türkiye": "TR",
   "Germany": "DE", "Curaçao": "CW", "Ivory Coast": "CI", "Ecuador": "EC",
   "Netherlands": "NL", "Japan": "JP", "Sweden": "SE", "Tunisia": "TN",
@@ -28,17 +28,23 @@ const FLAG_CODES = {
   "France": "FR", "Senegal": "SN", "Iraq": "IQ", "Norway": "NO",
   "Argentina": "AR", "Algeria": "DZ", "Austria": "AT", "Jordan": "JO",
   "Portugal": "PT", "DR Congo": "CD", "Uzbekistan": "UZ", "Colombia": "CO",
-  "England": "GB-ENG", "Croatia": "HR", "Ghana": "GH", "Panama": "PA",
+  "England": "gb-eng", "Croatia": "HR", "Ghana": "GH", "Panama": "PA",
 };
 
 function Flag({ team, size = 14 }) {
   const code = FLAG_CODES[team];
   if (!code) return null;
+  const lc = code.toLowerCase();
+  const url = lc === "gb-sct"
+    ? `https://flagcdn.com/32x24/gb.png`
+    : lc === "gb-eng"
+    ? `https://flagcdn.com/32x24/gb.png`
+    : `https://flagcdn.com/32x24/${lc}.png`;
   return (
     <img
-      src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`}
+      src={url}
       alt={team}
-      style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0, display: "block" }}
+      style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0, display: "inline-block" }}
       onError={e => { e.target.style.display = "none"; }}
     />
   );
@@ -318,10 +324,23 @@ export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
               <span style={{ fontSize: 12, fontWeight: 700, color: "#c9a84c" }}>{champion}</span>
             </div>
           )}
-          <button onClick={() => setShowShareBracket(true)}
-            style={{ padding: "6px 12px", borderRadius: 7, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 10, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
-            SHARE 🏆
-          </button>
+          <button onClick={() => {
+  if (window.confirm("Reset your entire bracket? This cannot be undone.")) {
+    const freshBracket = buildBracket(qualifiers, thirdPlaces);
+    setBracket(freshBracket);
+    setWinners({});
+    if (onWinnersChange) onWinnersChange({});
+    if (user) {
+      supabase.from("predictions").update({ bracket: { winners: {}, rounds: freshBracket } }).eq("user_id", user.id);
+    }
+  }
+}} style={{ padding: "6px 12px", borderRadius: 7, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.1)", color: "#f87171", fontFamily: "inherit", fontSize: 10, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+  RESET
+</button>
+<button onClick={() => setShowShareBracket(true)}
+  style={{ padding: "6px 12px", borderRadius: 7, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 10, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+  SHARE 🏆
+</button>
         </div>
       </div>
 
@@ -412,60 +431,67 @@ export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
 
       {/* Share modal */}
       {showShareBracket && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(8px)" }}
-          onClick={() => setShowShareBracket(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: "#080812", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 20, padding: 28, maxWidth: 500, width: "100%", maxHeight: "85vh", overflowY: "auto" }}>
-            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: 3, color: "#c9a84c", marginBottom: 20, textAlign: "center" }}>MY BRACKET PREDICTIONS</div>
-            {[
-              { label: "ROUND OF 32", matches: bracket.r32 },
-              { label: "ROUND OF 16", matches: bracket.r16 },
-              { label: "QUARTER-FINALS", matches: bracket.qf },
-              { label: "SEMI-FINALS", matches: bracket.sf },
-              { label: "🏆 CHAMPION", matches: bracket.final },
-            ].map(({ label, matches }) => {
-              const rw = matches.map(m => winners[m.id]).filter(Boolean);
-              if (rw.length === 0) return null;
-              return (
-                <div key={label} style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 10, color: "rgba(201,168,76,0.6)", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>{label}</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {rw.map((team, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "5px 10px" }}>
-                        <Flag team={team} size={13} />
-                        <span style={{ fontSize: 12, fontWeight: 600, color: label.includes("CHAMPION") ? "#c9a84c" : "#fff" }}>{team}</span>
-                        {label.includes("CHAMPION") && <span>🏆</span>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-            <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-              <button onClick={() => {
-                const lines = ["🏆 My World Cup 2026 Bracket!\n"];
-                [
-                  { label: "R32", matches: bracket.r32 },
-                  { label: "R16", matches: bracket.r16 },
-                  { label: "QF", matches: bracket.qf },
-                  { label: "SF", matches: bracket.sf },
-                  { label: "🏆 Champion", matches: bracket.final },
-                ].forEach(({ label, matches }) => {
-                  const rw = matches.map(m => winners[m.id]).filter(Boolean);
-                  if (rw.length > 0) lines.push(`${label}: ${rw.join(", ")}`);
-                });
-                lines.push("\nMake your predictions at getsportactiq.com");
-                navigator.clipboard.writeText(lines.join("\n"));
-              }} style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "12px", borderRadius: 10, cursor: "pointer" }}>
-                📋 Copy Text
-              </button>
-              <button onClick={() => setShowShareBracket(false)}
-                style={{ flex: 1, background: "#c9a84c", border: "none", color: "#080812", fontFamily: "inherit", fontSize: 13, fontWeight: 700, padding: "12px", borderRadius: 10, cursor: "pointer" }}>
-                Close
-              </button>
-            </div>
-          </div>
+  <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(8px)" }}
+    onClick={() => setShowShareBracket(false)}>
+    <div onClick={e => e.stopPropagation()} style={{ background: "#080812", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 20, padding: 28, maxWidth: 600, width: "100%", maxHeight: "90vh", overflowY: "auto" }}>
+      <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: 3, color: "#c9a84c", marginBottom: 20, textAlign: "center" }}>MY BRACKET PREDICTIONS</div>
+
+      {/* Visual bracket card */}
+      <div style={{ background: "#0d0d1a", borderRadius: 12, padding: 20, marginBottom: 16, border: "1px solid rgba(201,168,76,0.2)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(201,168,76,0.2)" }}>
+          <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 20, color: "#c9a84c", letterSpacing: 2 }}>WORLD CUP 2026</div>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: 1 }}>GETSPORTACTIQ.COM</div>
         </div>
-      )}
+
+        {[
+          { label: "R32", matches: bracket.r32 },
+          { label: "R16", matches: bracket.r16 },
+          { label: "QF", matches: bracket.qf },
+          { label: "SF", matches: bracket.sf },
+          { label: "🏆", matches: bracket.final },
+        ].map(({ label, matches }) => {
+          const rw = matches.map(m => ({ team: winners[m.id], matchId: m.id })).filter(w => w.team);
+          if (rw.length === 0) return null;
+          return (
+            <div key={label} style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 9, color: "rgba(201,168,76,0.5)", fontWeight: 700, letterSpacing: 2, marginBottom: 6 }}>{label}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {rw.map(({ team }, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, background: label === "🏆" ? "rgba(201,168,76,0.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${label === "🏆" ? "rgba(201,168,76,0.4)" : "rgba(255,255,255,0.08)"}`, borderRadius: 6, padding: "4px 8px" }}>
+                    <Flag team={team} size={11} />
+                    <span style={{ fontSize: 11, fontWeight: label === "🏆" ? 700 : 500, color: label === "🏆" ? "#c9a84c" : "#fff" }}>{team}</span>
+                    {label === "🏆" && <span style={{ fontSize: 12 }}>🏆</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ display: "flex", gap: 10 }}>
+        <button onClick={() => {
+          const lines = ["🏆 My World Cup 2026 Bracket!\n"];
+          [
+            { label: "R32", matches: bracket.r32 },
+            { label: "R16", matches: bracket.r16 },
+            { label: "QF", matches: bracket.qf },
+            { label: "SF", matches: bracket.sf },
+            { label: "🏆 Champion", matches: bracket.final },
+          ].forEach(({ label, matches }) => {
+            const rw = matches.map(m => winners[m.id]).filter(Boolean);
+            if (rw.length > 0) lines.push(`${label}: ${rw.join(", ")}`);
+          });
+          lines.push("\nMake your predictions at getsportactiq.com");
+          navigator.clipboard.writeText(lines.join("\n"));
+        }} style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "12px", borderRadius: 10, cursor: "pointer" }}>
+          📋 Copy Text
+        </button>
+        <button onClick={() => setShowShareBracket(false)}
+          style={{ flex: 1, background: "#c9a84c", border: "none", color: "#080812", fontFamily: "inherit", fontSize: 13, fontWeight: 700, padding: "12px", borderRadius: 10, cursor: "pointer" }}>
+          Close
+        </button>
+      </div>
     </div>
-  );
-}
+  </div>
+)}

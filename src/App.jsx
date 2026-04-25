@@ -54,9 +54,7 @@ export default function App() {
   <Bracket
     onBack={() => navigate("home")}
     bracketWinners={bracketWinners}
-    bracketRounds={bracketRounds}
     onWinnersChange={setBracketWinners}
-    onRoundsChange={setBracketRounds}
   />
 );
   if (page === "worldcup") return <WorldCup onBack={() => navigate("home")} onNavigate={navigate} />;

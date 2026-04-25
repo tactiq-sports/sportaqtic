@@ -115,7 +115,7 @@ function TeamSlot({ team, winner, onClick, isWildcard, align = "left" }) {
         cursor: team ? "pointer" : "default",
         opacity: isLoser ? 0.3 : 1,
         transition: "all 0.15s",
-        flexDirection: align === "right" ? "row-reverse" : "row",
+        flexDirection: "row",
         minWidth: 0,
       }}
       onMouseEnter={e => { if (team && !isWinner) e.currentTarget.style.borderColor = "rgba(201,168,76,0.4)"; }}

@@ -34,7 +34,14 @@ const FLAG_CODES = {
 function Flag({ team, size = 14 }) {
   const code = FLAG_CODES[team];
   if (!code) return null;
-  return <img src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`} alt={team} style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />;
+  return (
+    <img
+      src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`}
+      alt={team}
+      style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0, display: "block" }}
+      onError={e => { e.target.style.display = "none"; }}
+    />
+  );
 }
 
 function calcThirdFromMatches(groupMatches, teams) {
@@ -98,27 +105,36 @@ function TeamSlot({ team, winner, onClick, isWildcard }) {
     <div
       onClick={() => team && onClick && onClick(team)}
       style={{
-        display: "flex", alignItems: "center", gap: 4,
-        padding: "3px 6px", height: 26,
+        display: "flex", alignItems: "center", gap: 5,
+        padding: "4px 7px", height: 28,
         background: isWinner ? "rgba(201,168,76,0.2)" : "rgba(255,255,255,0.03)",
         border: `1px solid ${isWinner ? "rgba(201,168,76,0.5)" : "rgba(255,255,255,0.1)"}`,
         borderRadius: 5,
         cursor: team ? "pointer" : "default",
         opacity: isLoser ? 0.3 : 1,
         transition: "all 0.15s",
-        flexDirection: "row",
         minWidth: 0,
+        overflow: "hidden",
       }}
       onMouseEnter={e => { if (team && !isWinner) e.currentTarget.style.borderColor = "rgba(201,168,76,0.4)"; }}
       onMouseLeave={e => { if (!isWinner) e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
     >
       {team ? (
         <>
-          {isWildcard ? <span style={{ fontSize: 9 }}>🔵</span> : <Flag team={team} size={11} />}
-          <span style={{ fontSize: 10, fontWeight: isWinner ? 700 : 500, color: isWinner ? "#c9a84c" : "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{team}</span>
+          {isWildcard
+            ? <span style={{ fontSize: 9, flexShrink: 0 }}>🔵</span>
+            : <Flag team={team} size={11} />
+          }
+          <span style={{
+            fontSize: 10, fontWeight: isWinner ? 700 : 500,
+            color: isWinner ? "#c9a84c" : "#fff",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            flex: 1, minWidth: 0,
+          }}>{team}</span>
+          {isWinner && <span style={{ fontSize: 8, color: "#c9a84c", flexShrink: 0 }}>✓</span>}
         </>
       ) : (
-        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", fontStyle: "italic", flex: 1 }}>TBD</span>
+        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>TBD</span>
       )}
     </div>
   );
@@ -135,9 +151,9 @@ function MatchBox({ match, winner, onPick }) {
 
 function BracketColumn({ matches, winners, onPick }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-around", flex: 1 }}>
+    <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-around", height: "100%" }}>
       {matches.map((match, i) => (
-        <div key={match.id} style={{ padding: "4px 2px" }}>
+        <div key={match.id} style={{ padding: "3px 2px" }}>
           <MatchBox
             match={match}
             winner={winners[match.id]}
@@ -149,7 +165,7 @@ function BracketColumn({ matches, winners, onPick }) {
   );
 }
 
-export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinnersChange, onRoundsChange }) {
+export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
   const [qualifiers, setQualifiers] = useState({});
   const [thirdPlaces, setThirdPlaces] = useState({});
   const [winners, setWinners] = useState(bracketWinners || {});
@@ -157,19 +173,26 @@ export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinne
   const [loaded, setLoaded] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showShareBracket, setShowShareBracket] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     async function load() {
       let q = {};
       let tp = {};
+      let savedWinners = {};
+      let savedBracket = null;
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
+          setUser(session.user);
           const { data } = await supabase
             .from("predictions")
-            .select("predictions")
+            .select("predictions, bracket")
             .eq("user_id", session.user.id)
             .single();
+
           if (data?.predictions?.qualifiers) q = data.predictions.qualifiers;
           if (data?.predictions?.matches) {
             Object.keys(GROUPS).forEach(groupId => {
@@ -181,15 +204,45 @@ export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinne
               if (standings[2]) tp[groupId] = { team: standings[2].team, pts: standings[2].pts, gf: standings[2].gf, ga: standings[2].ga };
             });
           }
+          if (data?.bracket?.winners) savedWinners = data.bracket.winners;
+          if (data?.bracket?.rounds) savedBracket = data.bracket.rounds;
         }
       } catch (e) { console.error(e); }
+
       setQualifiers(q);
       setThirdPlaces(tp);
-      setBracket(buildBracket(q, tp));
+
+      const base = buildBracket(q, tp);
+
+      // If we have saved bracket rounds, merge with fresh R32
+      if (savedBracket) {
+        savedBracket.r32 = base.r32; // always use fresh R32 from qualifiers
+        setBracket(savedBracket);
+      } else {
+        setBracket(base);
+      }
+
+      setWinners(savedWinners);
       setLoaded(true);
     }
     load();
   }, []);
+
+  async function saveBracket(newWinners, newBracket) {
+    if (!user) return;
+    setSaveMsg("Saving...");
+    const { error } = await supabase
+      .from("predictions")
+      .update({ bracket: { winners: newWinners, rounds: newBracket } })
+      .eq("user_id", user.id);
+    if (!error) {
+      setSaveMsg("✓ Saved!");
+      setTimeout(() => setSaveMsg(""), 3000);
+    } else {
+      setSaveMsg("Error");
+      setTimeout(() => setSaveMsg(""), 3000);
+    }
+  }
 
   function pickWinner(roundKey, matchIdx, team) {
     if (!team || !bracket) return;
@@ -198,17 +251,20 @@ export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinne
     const newWinners = { ...winners, [match.id]: team };
     setWinners(newWinners);
     if (onWinnersChange) onWinnersChange(newWinners);
+
+    const newBracket = { ...bracket };
     if (nextRound[roundKey]) {
       const next = nextRound[roundKey];
       const nextMatchIdx = Math.floor(matchIdx / 2);
       const isHome = matchIdx % 2 === 0;
-      const newBracket = { ...bracket };
       const nextMatches = [...newBracket[next]];
       nextMatches[nextMatchIdx] = { ...nextMatches[nextMatchIdx], [isHome ? "home" : "away"]: team };
       newBracket[next] = nextMatches;
       setBracket(newBracket);
-      if (onRoundsChange) onRoundsChange(newBracket);
     }
+
+    saveBracket(newWinners, newBracket);
+
     if (roundKey === "final") {
       setTimeout(() => setShowCelebration(true), 400);
     }
@@ -244,24 +300,26 @@ export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinne
       </div>
 
       {/* Navbar */}
-      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 24px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, background: "rgba(8,8,18,0.92)", backdropFilter: "blur(16px)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <button onClick={onBack} style={{ background: "none", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontFamily: "inherit", fontSize: 12, padding: "6px 12px", borderRadius: 7, cursor: "pointer" }}>← Home</button>
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 16px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, background: "rgba(8,8,18,0.92)", backdropFilter: "blur(16px)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button onClick={onBack} style={{ background: "none", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontFamily: "inherit", fontSize: 12, padding: "5px 10px", borderRadius: 7, cursor: "pointer", whiteSpace: "nowrap" }}>← Home</button>
           <div>
-            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 20, letterSpacing: 3, color: "#c9a84c", lineHeight: 1 }}>WORLD CUP 2026</div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: 2 }}>KNOCKOUT BRACKET</div>
+            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 18, letterSpacing: 3, color: "#c9a84c", lineHeight: 1 }}>WORLD CUP 2026</div>
+            <div style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", letterSpacing: 2 }}>KNOCKOUT BRACKET</div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          {saveMsg && <span style={{ fontSize: 11, color: "#22c55e", fontWeight: 700 }}>{saveMsg}</span>}
+          {!user && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Log in to save</span>}
           {champion && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 10, padding: "6px 12px" }}>
-              <span>🏆</span>
-              <Flag team={champion} size={14} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#c9a84c" }}>{champion}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 8, padding: "5px 10px" }}>
+              <span style={{ fontSize: 14 }}>🏆</span>
+              <Flag team={champion} size={13} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#c9a84c" }}>{champion}</span>
             </div>
           )}
           <button onClick={() => setShowShareBracket(true)}
-            style={{ padding: "7px 14px", borderRadius: 8, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+            style={{ padding: "6px 12px", borderRadius: 7, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 10, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
             SHARE 🏆
           </button>
         </div>
@@ -276,39 +334,38 @@ export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinne
         )}
 
         {/* Round labels */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 100px 1fr 1fr 1fr 1fr", gap: 4, marginBottom: 8, textAlign: "center", minWidth: 900 }}>
-          {["R32","R16","QF","SF","","SF","QF","R16","R32"].map((l, i) => (
-            <div key={i} style={{ fontSize: 9, color: "rgba(201,168,76,0.6)", fontWeight: 700, letterSpacing: 1 }}>{l}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 110px 1fr 1fr 1fr 1fr", gap: 4, marginBottom: 6, textAlign: "center", minWidth: 900 }}>
+          {["R32","R16","QF","SF","FINAL","SF","QF","R16","R32"].map((l, i) => (
+            <div key={i} style={{ fontSize: 9, color: i === 4 ? "#c9a84c" : "rgba(201,168,76,0.5)", fontWeight: 700, letterSpacing: 1 }}>{l}</div>
           ))}
         </div>
 
         {/* Bracket tree */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 100px 1fr 1fr 1fr 1fr", gap: 4, minHeight: 640, alignItems: "stretch", minWidth: 900 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 110px 1fr 1fr 1fr 1fr", gap: 4, height: 640, alignItems: "stretch", minWidth: 900 }}>
 
-          {/* LEFT SIDE */}
           <BracketColumn matches={leftR32} winners={winners} onPick={(i, t) => pickWinner("r32", i, t)} />
           <BracketColumn matches={leftR16} winners={winners} onPick={(i, t) => pickWinner("r16", i, t)} />
           <BracketColumn matches={leftQF} winners={winners} onPick={(i, t) => pickWinner("qf", i, t)} />
           <BracketColumn matches={leftSF} winners={winners} onPick={(i, t) => pickWinner("sf", i, t)} />
 
-          {/* FINAL CENTER */}
+          {/* FINAL */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6 }}>
-            <div style={{ fontSize: 9, color: "#c9a84c", fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>FINAL</div>
             <MatchBox
               match={bracket.final[0]}
               winner={winners[bracket.final[0].id]}
               onPick={(team) => pickWinner("final", 0, team)}
             />
             {champion && (
-              <div style={{ marginTop: 8, textAlign: "center" }}>
-                <div style={{ fontSize: 18 }}>🏆</div>
-                <Flag team={champion} size={14} />
-                <div style={{ fontSize: 9, color: "#c9a84c", fontWeight: 700, marginTop: 2 }}>{champion}</div>
+              <div style={{ textAlign: "center", marginTop: 8 }}>
+                <div style={{ fontSize: 20 }}>🏆</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, marginTop: 4 }}>
+                  <Flag team={champion} size={12} />
+                  <span style={{ fontSize: 9, color: "#c9a84c", fontWeight: 700 }}>{champion}</span>
+                </div>
               </div>
             )}
           </div>
 
-          {/* RIGHT SIDE */}
           <BracketColumn matches={rightSF} winners={winners} onPick={(i, t) => pickWinner("sf", i + 1, t)} />
           <BracketColumn matches={rightQF} winners={winners} onPick={(i, t) => pickWinner("qf", i + 2, t)} />
           <BracketColumn matches={rightR16} winners={winners} onPick={(i, t) => pickWinner("r16", i + 4, t)} />
@@ -316,9 +373,9 @@ export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinne
 
         </div>
 
-        {/* Best 3rd place info */}
+        {/* Best 3rd place */}
         {best3rd.length > 0 && (
-          <div style={{ background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 10, padding: "12px 16px", marginTop: 20, fontSize: 12 }}>
+          <div style={{ background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 10, padding: "12px 16px", marginTop: 16, fontSize: 12 }}>
             <div style={{ color: "#93c5fd", fontWeight: 700, marginBottom: 8, letterSpacing: 1 }}>🔵 BEST 3RD PLACE TEAMS ({best3rd.length}/8)</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {best3rd.map((t, i) => (
@@ -353,38 +410,36 @@ export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinne
         </div>
       )}
 
-      {/* Share bracket modal */}
+      {/* Share modal */}
       {showShareBracket && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(8px)" }}
           onClick={() => setShowShareBracket(false)}>
           <div onClick={e => e.stopPropagation()} style={{ background: "#080812", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 20, padding: 28, maxWidth: 500, width: "100%", maxHeight: "85vh", overflowY: "auto" }}>
             <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: 3, color: "#c9a84c", marginBottom: 20, textAlign: "center" }}>MY BRACKET PREDICTIONS</div>
-
             {[
-              { label: "ROUND OF 32", matches: bracket.r32, roundKey: "r32" },
-              { label: "ROUND OF 16", matches: bracket.r16, roundKey: "r16" },
-              { label: "QUARTER-FINALS", matches: bracket.qf, roundKey: "qf" },
-              { label: "SEMI-FINALS", matches: bracket.sf, roundKey: "sf" },
-              { label: "🏆 CHAMPION", matches: bracket.final, roundKey: "final" },
-            ].map(({ label, matches, roundKey }) => {
-              const roundWinners = matches.map(m => winners[m.id]).filter(Boolean);
-              if (roundWinners.length === 0) return null;
+              { label: "ROUND OF 32", matches: bracket.r32 },
+              { label: "ROUND OF 16", matches: bracket.r16 },
+              { label: "QUARTER-FINALS", matches: bracket.qf },
+              { label: "SEMI-FINALS", matches: bracket.sf },
+              { label: "🏆 CHAMPION", matches: bracket.final },
+            ].map(({ label, matches }) => {
+              const rw = matches.map(m => winners[m.id]).filter(Boolean);
+              if (rw.length === 0) return null;
               return (
-                <div key={roundKey} style={{ marginBottom: 16 }}>
+                <div key={label} style={{ marginBottom: 16 }}>
                   <div style={{ fontSize: 10, color: "rgba(201,168,76,0.6)", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>{label}</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {roundWinners.map((team, i) => (
+                    {rw.map((team, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "5px 10px" }}>
                         <Flag team={team} size={13} />
-                        <span style={{ fontSize: 12, fontWeight: 600, color: roundKey === "final" ? "#c9a84c" : "#fff" }}>{team}</span>
-                        {roundKey === "final" && <span style={{ fontSize: 14 }}>🏆</span>}
+                        <span style={{ fontSize: 12, fontWeight: 600, color: label.includes("CHAMPION") ? "#c9a84c" : "#fff" }}>{team}</span>
+                        {label.includes("CHAMPION") && <span>🏆</span>}
                       </div>
                     ))}
                   </div>
                 </div>
               );
             })}
-
             <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
               <button onClick={() => {
                 const lines = ["🏆 My World Cup 2026 Bracket!\n"];
@@ -400,8 +455,7 @@ export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinne
                 });
                 lines.push("\nMake your predictions at getsportactiq.com");
                 navigator.clipboard.writeText(lines.join("\n"));
-              }}
-                style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "12px", borderRadius: 10, cursor: "pointer" }}>
+              }} style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "12px", borderRadius: 10, cursor: "pointer" }}>
                 📋 Copy Text
               </button>
               <button onClick={() => setShowShareBracket(false)}

@@ -1,6 +1,21 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabase";
 
+const GROUPS = {
+  A: ["Mexico", "South Africa", "South Korea", "Czechia"],
+  B: ["Canada", "Bosnia and Herzegovina", "Qatar", "Switzerland"],
+  C: ["Brazil", "Morocco", "Haiti", "Scotland"],
+  D: ["USA", "Paraguay", "Australia", "Türkiye"],
+  E: ["Germany", "Curaçao", "Ivory Coast", "Ecuador"],
+  F: ["Netherlands", "Japan", "Sweden", "Tunisia"],
+  G: ["Belgium", "Egypt", "Iran", "New Zealand"],
+  H: ["Spain", "Cape Verde", "Saudi Arabia", "Uruguay"],
+  I: ["France", "Senegal", "Iraq", "Norway"],
+  J: ["Argentina", "Algeria", "Austria", "Jordan"],
+  K: ["Portugal", "DR Congo", "Uzbekistan", "Colombia"],
+  L: ["England", "Croatia", "Ghana", "Panama"],
+};
+
 const FLAG_CODES = {
   "Mexico": "MX", "South Africa": "ZA", "South Korea": "KR", "Czechia": "CZ",
   "Canada": "CA", "Bosnia and Herzegovina": "BA", "Qatar": "QA", "Switzerland": "CH",
@@ -20,6 +35,22 @@ function Flag({ team, size = 16 }) {
   const code = FLAG_CODES[team];
   if (!code) return null;
   return <img src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`} alt={team} style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />;
+}
+
+function calcThirdFromMatches(groupMatches, teams) {
+  const t = {};
+  teams.forEach(n => t[n] = { team: n, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 });
+  groupMatches.forEach(({ home, away, homeScore, awayScore }) => {
+    if (homeScore === null || awayScore === null) return;
+    const h = t[home], a = t[away];
+    h.p++; a.p++;
+    h.gf += homeScore; h.ga += awayScore;
+    a.gf += awayScore; a.ga += homeScore;
+    if (homeScore > awayScore) { h.w++; h.pts += 3; a.l++; }
+    else if (homeScore < awayScore) { a.w++; a.pts += 3; h.l++; }
+    else { h.d++; h.pts++; a.d++; a.pts++; }
+  });
+  return Object.values(t).sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
 }
 
 function getBest3rd(thirdPlaces) {
@@ -65,91 +96,54 @@ function initRounds(r32) {
 
 const ROUND_NAMES = ["Round of 32", "Round of 16", "Quarter-finals", "Semi-finals", "Final"];
 
-export default function Bracket({ onBack, qualifiers: qualifiersProp = {}, thirdPlaces: thirdPlacesProp = {}, bracketWinners, bracketRounds, onWinnersChange, onRoundsChange }) {
-  const [qualifiers, setQualifiers] = useState(qualifiersProp);
-  const [thirdPlaces, setThirdPlaces] = useState(thirdPlacesProp);
+export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinnersChange, onRoundsChange }) {
+  const [qualifiers, setQualifiers] = useState({});
+  const [thirdPlaces, setThirdPlaces] = useState({});
   const [winners, setWinners] = useState(bracketWinners || {});
   const [rounds, setRounds] = useState(null);
   const [activeRound, setActiveRound] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
-  // Load from Supabase if no qualifiers passed from App
   useEffect(() => {
     async function load() {
-  let q = qualifiersProp;
-  let tp = thirdPlacesProp;
+      let q = {};
+      let tp = {};
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session?.user) {
-    const { data } = await supabase
-      .from("predictions")
-      .select("predictions")
-      .eq("user_id", session.user.id)
-      .single();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const { data } = await supabase
+            .from("predictions")
+            .select("predictions")
+            .eq("user_id", session.user.id)
+            .single();
 
-    if (data?.predictions) {
-      const saved = data.predictions;
-      if (saved.qualifiers) q = saved.qualifiers;
-
-      // Recalculate thirdPlaces directly from saved matches
-      if (saved.matches) {
-        const GROUPS = {
-          A: ["Mexico", "South Africa", "South Korea", "Czechia"],
-          B: ["Canada", "Bosnia and Herzegovina", "Qatar", "Switzerland"],
-          C: ["Brazil", "Morocco", "Haiti", "Scotland"],
-          D: ["USA", "Paraguay", "Australia", "Türkiye"],
-          E: ["Germany", "Curaçao", "Ivory Coast", "Ecuador"],
-          F: ["Netherlands", "Japan", "Sweden", "Tunisia"],
-          G: ["Belgium", "Egypt", "Iran", "New Zealand"],
-          H: ["Spain", "Cape Verde", "Saudi Arabia", "Uruguay"],
-          I: ["France", "Senegal", "Iraq", "Norway"],
-          J: ["Argentina", "Algeria", "Austria", "Jordan"],
-          K: ["Portugal", "DR Congo", "Uzbekistan", "Colombia"],
-          L: ["England", "Croatia", "Ghana", "Panama"],
-        };
-        const recalculated = {};
-        Object.keys(GROUPS).forEach(groupId => {
-          const groupMatches = saved.matches[groupId];
-          if (!groupMatches) return;
-          const allPlayed = groupMatches.every(m => m.homeScore !== null && m.awayScore !== null);
-          if (!allPlayed) return;
-          const teams = GROUPS[groupId];
-          const t = {};
-          teams.forEach(n => t[n] = { team: n, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 });
-          groupMatches.forEach(({ home, away, homeScore, awayScore }) => {
-            if (homeScore === null || awayScore === null) return;
-            const h = t[home], a = t[away];
-            h.p++; a.p++; h.gf += homeScore; h.ga += awayScore; a.gf += awayScore; a.ga += homeScore;
-            if (homeScore > awayScore) { h.w++; h.pts += 3; a.l++; }
-            else if (homeScore < awayScore) { a.w++; a.pts += 3; h.l++; }
-            else { h.d++; h.pts++; a.d++; a.pts++; }
-          });
-          const standings = Object.values(t).sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
-          if (standings[2]) {
-            recalculated[groupId] = { team: standings[2].team, pts: standings[2].pts, gf: standings[2].gf, ga: standings[2].ga };
+          if (data?.predictions?.qualifiers) {
+            q = data.predictions.qualifiers;
           }
-        });
-        tp = recalculated;
+
+          if (data?.predictions?.matches) {
+            Object.keys(GROUPS).forEach(groupId => {
+              const groupMatches = data.predictions.matches[groupId];
+              if (!groupMatches) return;
+              const allPlayed = groupMatches.every(m => m.homeScore !== null && m.awayScore !== null);
+              if (!allPlayed) return;
+              const standings = calcThirdFromMatches(groupMatches, GROUPS[groupId]);
+              if (standings[2]) {
+                tp[groupId] = {
+                  team: standings[2].team,
+                  pts: standings[2].pts,
+                  gf: standings[2].gf,
+                  ga: standings[2].ga,
+                };
+              }
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Load error:", e);
       }
-    }
-  }
 
-  setQualifiers(q);
-  setThirdPlaces(tp);
-  const r32 = buildR32(q, tp);
-  setRounds(bracketRounds || initRounds(r32));
-  setLoaded(true);
-}
-  }
-
-  console.log("qualifiers:", q);
-  console.log("thirdPlaces:", tp);
-  setQualifiers(q);
-  setThirdPlaces(tp);
-  const r32 = buildR32(q, tp);
-  setRounds(bracketRounds || initRounds(r32));
-  setLoaded(true);
-}
       setQualifiers(q);
       setThirdPlaces(tp);
       const r32 = buildR32(q, tp);
@@ -158,18 +152,6 @@ export default function Bracket({ onBack, qualifiers: qualifiersProp = {}, third
     }
     load();
   }, []);
-
-  // Update R32 when qualifiers/thirdPlaces change from props
-  useEffect(() => {
-    if (!loaded) return;
-    if (Object.keys(qualifiersProp).length === 0) return;
-    setQualifiers(qualifiersProp);
-    setThirdPlaces(thirdPlacesProp);
-    setRounds(prev => {
-      if (!prev) return prev;
-      return { ...prev, 0: buildR32(qualifiersProp, thirdPlacesProp) };
-    });
-  }, [qualifiersProp, thirdPlacesProp]);
 
   function updateWinners(updated) {
     setWinners(updated);

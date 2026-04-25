@@ -79,18 +79,67 @@ export default function Bracket({ onBack, qualifiers: qualifiersProp = {}, third
   let q = qualifiersProp;
   let tp = thirdPlacesProp;
 
-  if (Object.keys(q).length === 0) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      const { data } = await supabase
-        .from("predictions")
-        .select("predictions")
-        .eq("user_id", session.user.id)
-        .single();
-      console.log("Loaded from Supabase:", data?.predictions);
-      if (data?.predictions?.qualifiers) q = data.predictions.qualifiers;
-      if (data?.predictions?.thirdPlaces) tp = data.predictions.thirdPlaces;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user) {
+    const { data } = await supabase
+      .from("predictions")
+      .select("predictions")
+      .eq("user_id", session.user.id)
+      .single();
+
+    if (data?.predictions) {
+      const saved = data.predictions;
+      if (saved.qualifiers) q = saved.qualifiers;
+
+      // Recalculate thirdPlaces directly from saved matches
+      if (saved.matches) {
+        const GROUPS = {
+          A: ["Mexico", "South Africa", "South Korea", "Czechia"],
+          B: ["Canada", "Bosnia and Herzegovina", "Qatar", "Switzerland"],
+          C: ["Brazil", "Morocco", "Haiti", "Scotland"],
+          D: ["USA", "Paraguay", "Australia", "Türkiye"],
+          E: ["Germany", "Curaçao", "Ivory Coast", "Ecuador"],
+          F: ["Netherlands", "Japan", "Sweden", "Tunisia"],
+          G: ["Belgium", "Egypt", "Iran", "New Zealand"],
+          H: ["Spain", "Cape Verde", "Saudi Arabia", "Uruguay"],
+          I: ["France", "Senegal", "Iraq", "Norway"],
+          J: ["Argentina", "Algeria", "Austria", "Jordan"],
+          K: ["Portugal", "DR Congo", "Uzbekistan", "Colombia"],
+          L: ["England", "Croatia", "Ghana", "Panama"],
+        };
+        const recalculated = {};
+        Object.keys(GROUPS).forEach(groupId => {
+          const groupMatches = saved.matches[groupId];
+          if (!groupMatches) return;
+          const allPlayed = groupMatches.every(m => m.homeScore !== null && m.awayScore !== null);
+          if (!allPlayed) return;
+          const teams = GROUPS[groupId];
+          const t = {};
+          teams.forEach(n => t[n] = { team: n, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 });
+          groupMatches.forEach(({ home, away, homeScore, awayScore }) => {
+            if (homeScore === null || awayScore === null) return;
+            const h = t[home], a = t[away];
+            h.p++; a.p++; h.gf += homeScore; h.ga += awayScore; a.gf += awayScore; a.ga += homeScore;
+            if (homeScore > awayScore) { h.w++; h.pts += 3; a.l++; }
+            else if (homeScore < awayScore) { a.w++; a.pts += 3; h.l++; }
+            else { h.d++; h.pts++; a.d++; a.pts++; }
+          });
+          const standings = Object.values(t).sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
+          if (standings[2]) {
+            recalculated[groupId] = { team: standings[2].team, pts: standings[2].pts, gf: standings[2].gf, ga: standings[2].ga };
+          }
+        });
+        tp = recalculated;
+      }
     }
+  }
+
+  setQualifiers(q);
+  setThirdPlaces(tp);
+  const r32 = buildR32(q, tp);
+  setRounds(bracketRounds || initRounds(r32));
+  setLoaded(true);
+}
   }
 
   console.log("qualifiers:", q);

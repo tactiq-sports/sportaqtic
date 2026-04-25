@@ -31,14 +31,19 @@ const FLAG_CODES = {
   "England": "gb", "Croatia": "hr", "Ghana": "gh", "Panama": "pa",
 };
 
-function Flag({ team, size = 14 }) {
+function getFlagUrl(team) {
   const code = FLAG_CODES[team];
   if (!code) return null;
+  if (code === "gb-sct") return "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Flag_of_Scotland.svg/32px-Flag_of_Scotland.svg.png";
+  return `https://flagcdn.com/32x24/${code}.png`;
+}
+
+function Flag({ team, size = 14 }) {
+  const url = getFlagUrl(team);
+  if (!url) return null;
   return (
     <img
-      src={code === "gb-sct"
-  ? "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Flag_of_Scotland.svg/32px-Flag_of_Scotland.svg.png"
-  : `https://flagcdn.com/32x24/${code}.png`}
+      src={url}
       alt={team}
       style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }}
       onError={e => { e.target.style.display = "none"; }}
@@ -100,7 +105,7 @@ function buildBracket(qualifiers, thirdPlaces) {
   };
 }
 
-function TeamSlot({ team, winner, onClick, isWildcard }) {
+function TeamSlot({ team, winner, onClick }) {
   const isWinner = winner === team;
   const isLoser = winner && winner !== team;
   return (
@@ -136,8 +141,8 @@ function TeamSlot({ team, winner, onClick, isWildcard }) {
 function MatchBox({ match, winner, onPick }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}>
-      <TeamSlot team={match?.home} winner={winner} onClick={onPick} isWildcard={match?.wildcard} />
-      <TeamSlot team={match?.away} winner={winner} onClick={onPick} isWildcard={match?.wildcard} />
+      <TeamSlot team={match?.home} winner={winner} onClick={onPick} />
+      <TeamSlot team={match?.away} winner={winner} onClick={onPick} />
     </div>
   );
 }
@@ -176,21 +181,22 @@ function BracketShareModal({ bracket, winners, champion, onClose }) {
     } catch { return null; }
   }
 
-  const sfWinners = bracket.sf.map(m => winners[m.id]).filter(Boolean);
-  const finalTeams = [bracket.final[0].home, bracket.final[0].away].filter(Boolean);
-  const allTeams = [...new Set([...sfWinners, ...finalTeams, champion].filter(Boolean))];
+  const allWinnerTeams = new Set();
+  ["qf","sf","final"].forEach(key => {
+    bracket[key]?.forEach(m => {
+      const w = winners[m.id];
+      if (w) allWinnerTeams.add(w);
+    });
+  });
+  if (champion) allWinnerTeams.add(champion);
 
   useEffect(() => {
     async function loadFlags() {
       const cache = {};
-      await Promise.all(allTeams.map(async team => {
-        const code = FLAG_CODES[team];
-        if (!code) return;
-        const b64 = await toBase64(
-  code === "gb-sct"
-    ? "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Flag_of_Scotland.svg/32px-Flag_of_Scotland.svg.png"
-    : `https://flagcdn.com/32x24/${code}.png`
-);
+      await Promise.all([...allWinnerTeams].map(async team => {
+        const url = getFlagUrl(team);
+        if (!url) return;
+        const b64 = await toBase64(url);
         if (b64) cache[team] = b64;
       }));
       setFlagCache(cache);
@@ -220,92 +226,59 @@ function BracketShareModal({ bracket, winners, champion, onClose }) {
     setDownloading(false);
   }
 
-  function FlagCached({ team, size = 16 }) {
+  function FlagCached({ team, size = 14 }) {
     const b64 = flagCache[team];
     if (!b64) return <div style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, background: "rgba(255,255,255,0.1)", flexShrink: 0 }} />;
     return <img src={b64} alt={team} style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} />;
   }
 
-  function TeamPill({ team, isWinner }) {
-    return (
-      <div style={{
-        display: "flex", alignItems: "center", gap: 7,
-        background: isWinner ? "rgba(201,168,76,0.15)" : "rgba(255,255,255,0.05)",
-        border: `1px solid ${isWinner ? "rgba(201,168,76,0.4)" : "rgba(255,255,255,0.1)"}`,
-        borderRadius: 7, padding: "7px 10px",
-      }}>
-        <FlagCached team={team} size={15} />
-        <span style={{ fontSize: 13, fontWeight: isWinner ? 700 : 500, color: isWinner ? "#c9a84c" : "#fff", whiteSpace: "nowrap" }}>{team}</span>
-        {isWinner && <span style={{ fontSize: 12 }}>🏆</span>}
-      </div>
-    );
-  }
-
-  const leftSF = winners[bracket.sf[0]?.id];
-  const rightSF = winners[bracket.sf[1]?.id];
-  const finalHome = bracket.final[0]?.home;
-  const finalAway = bracket.final[0]?.away;
+  const rounds = [
+    { key: "qf", label: "QUARTER-FINALS", cols: 4 },
+    { key: "sf", label: "SEMI-FINALS", cols: 2 },
+    { key: "final", label: "🏆 CHAMPION", cols: 1 },
+  ];
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(8px)" }}
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(8px)" }}
       onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 560, width: "100%" }}>
+      <div onClick={e => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 560, width: "100%" }}>
 
-        <div ref={cardRef} style={{ background: "#0d0d1a", borderRadius: 16, padding: 24, border: "1px solid rgba(201,168,76,0.3)", fontFamily: "'DM Sans',sans-serif" }}>
+        <div ref={cardRef} style={{ background: "#0d0d1a", borderRadius: 16, padding: 20, border: "1px solid rgba(201,168,76,0.3)", fontFamily: "'DM Sans',sans-serif" }}>
           <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap');`}</style>
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, paddingBottom: 14, borderBottom: "1px solid rgba(201,168,76,0.2)" }}>
-            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 22, color: "#c9a84c", letterSpacing: 3 }}>MY WORLD CUP 2026 BRACKET</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(201,168,76,0.25)" }}>
+            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 22, color: "#c9a84c", letterSpacing: 3 }}>WORLD CUP 2026 — MY BRACKET</div>
             <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: 1 }}>GETSPORTACTIQ.COM</div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "stretch", gap: 6 }}>
-
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 9, color: "rgba(201,168,76,0.5)", fontWeight: 700, letterSpacing: 2, marginBottom: 8, textAlign: "center" }}>SEMI-FINALS</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {[leftSF, rightSF].map((team, i) => team ? (
-                  <TeamPill key={i} team={team} isWinner={false} />
-                ) : (
-                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 7, padding: "7px 10px", fontSize: 11, color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>TBD</div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ color: "rgba(201,168,76,0.4)", fontSize: 20, fontWeight: 700, padding: "0 4px", display: "flex", alignItems: "center" }}>→</div>
-
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 9, color: "rgba(201,168,76,0.5)", fontWeight: 700, letterSpacing: 2, marginBottom: 8, textAlign: "center" }}>FINAL</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {[finalHome, finalAway].map((team, i) => team ? (
-                  <TeamPill key={i} team={team} isWinner={false} />
-                ) : (
-                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 7, padding: "7px 10px", fontSize: 11, color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>TBD</div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ color: "rgba(201,168,76,0.4)", fontSize: 20, fontWeight: 700, padding: "0 4px", display: "flex", alignItems: "center" }}>→</div>
-
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 9, color: "rgba(201,168,76,0.5)", fontWeight: 700, letterSpacing: 2, marginBottom: 8, textAlign: "center" }}>🏆 CHAMPION</div>
-              {champion ? (
-                <div style={{ background: "rgba(201,168,76,0.12)", border: "2px solid rgba(201,168,76,0.5)", borderRadius: 10, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
-                    <FlagCached team={champion} size={24} />
-                  </div>
-                  <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 20, color: "#c9a84c", letterSpacing: 2 }}>{champion}</div>
-                  <div style={{ fontSize: 18, marginTop: 4 }}>🏆</div>
+          {rounds.map(({ key, label, cols }) => {
+            const roundWinners = bracket[key]?.map(m => winners[m.id]).filter(Boolean) || [];
+            if (roundWinners.length === 0) return null;
+            const isChampion = key === "final";
+            return (
+              <div key={key} style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 9, color: isChampion ? "#c9a84c" : "rgba(201,168,76,0.5)", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>{label}</div>
+                <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(cols, roundWinners.length)}, 1fr)`, gap: 6 }}>
+                  {roundWinners.map((team, i) => (
+                    <div key={i} style={{
+                      display: "flex", alignItems: "center", gap: 6,
+                      background: isChampion ? "rgba(201,168,76,0.15)" : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${isChampion ? "rgba(201,168,76,0.5)" : "rgba(255,255,255,0.08)"}`,
+                      borderRadius: 7, padding: isChampion ? "10px 12px" : "5px 9px",
+                    }}>
+                      <FlagCached team={team} size={isChampion ? 18 : 13} />
+                      <span style={{ fontSize: isChampion ? 15 : 11, fontWeight: isChampion ? 700 : 500, color: isChampion ? "#c9a84c" : "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{team}</span>
+                      {isChampion && <span style={{ marginLeft: "auto", fontSize: 16 }}>🏆</span>}
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "14px 12px", textAlign: "center", color: "rgba(255,255,255,0.2)", fontSize: 11, fontStyle: "italic" }}>TBD</div>
-              )}
-            </div>
-          </div>
+              </div>
+            );
+          })}
 
-          <div style={{ marginTop: 18, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>Make your predictions at</div>
-            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 13, color: "rgba(201,168,76,0.5)", letterSpacing: 2 }}>GETSPORTACTIQ.COM</div>
+            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 12, color: "rgba(201,168,76,0.5)", letterSpacing: 2 }}>GETSPORTACTIQ.COM</div>
           </div>
         </div>
 
@@ -494,14 +467,12 @@ export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
           </div>
         )}
 
-        {/* Round labels */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 110px 1fr 1fr 1fr 1fr", gap: 4, marginBottom: 6, textAlign: "center", minWidth: 900 }}>
           {["R32","R16","QF","SF","FINAL","SF","QF","R16","R32"].map((l, i) => (
             <div key={i} style={{ fontSize: 9, color: i === 4 ? "#c9a84c" : "rgba(201,168,76,0.5)", fontWeight: 700, letterSpacing: 1 }}>{l}</div>
           ))}
         </div>
 
-        {/* Bracket */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 110px 1fr 1fr 1fr 1fr", gap: 4, height: 640, alignItems: "stretch", minWidth: 900 }}>
           <BracketColumn matches={leftR32} winners={winners} onPick={(i, t) => pickWinner("r32", i, t)} />
           <BracketColumn matches={leftR16} winners={winners} onPick={(i, t) => pickWinner("r16", i, t)} />
@@ -547,7 +518,6 @@ export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
         )}
       </div>
 
-      {/* Celebration */}
       {showCelebration && champion && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(8px)" }}
           onClick={() => setShowCelebration(false)}>

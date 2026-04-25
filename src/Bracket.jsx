@@ -96,6 +96,61 @@ function initRounds(r32) {
 
 const ROUND_NAMES = ["Round of 32", "Round of 16", "Quarter-finals", "Semi-finals", "Final"];
 
+const ROUND_LABELS = ["R32", "R16", "QF", "SF", "Final"];
+
+function BracketSummary({ rounds, winners, champion, onClose }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(8px)" }}
+      onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#080812", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 20, padding: 28, maxWidth: 700, width: "100%", maxHeight: "90vh", overflowY: "auto" }}>
+
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{ fontSize: 40, marginBottom: 8 }}>🏆</div>
+          <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 32, letterSpacing: 3, color: "#c9a84c", marginBottom: 4 }}>YOUR BRACKET</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>Here's how you predicted the World Cup 2026</div>
+        </div>
+
+        {/* Champion */}
+        <div style={{ background: "linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.05))", border: "1px solid rgba(201,168,76,0.4)", borderRadius: 14, padding: "16px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14 }}>
+          <span style={{ fontSize: 28 }}>🥇</span>
+          <div>
+            <div style={{ fontSize: 10, color: "rgba(201,168,76,0.6)", letterSpacing: 2, fontWeight: 700, marginBottom: 4 }}>WORLD CUP 2026 CHAMPION</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Flag team={champion} size={20} />
+              <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 28, color: "#c9a84c", letterSpacing: 2 }}>{champion}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Rounds summary */}
+        {[4, 3, 2, 1].map(roundIdx => {
+          const roundWinners = rounds[roundIdx - 1]?.map(match => winners[match.id]).filter(Boolean) || [];
+          if (roundWinners.length === 0) return null;
+          const labels = ["Round of 32", "Round of 16", "Quarter-finals", "Semi-finals"];
+          return (
+            <div key={roundIdx} style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>{labels[roundIdx - 1]}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {roundWinners.map((team, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "5px 10px" }}>
+                    <Flag team={team} size={12} />
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#fff" }}>{team}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
+        <button onClick={onClose}
+          style={{ width: "100%", marginTop: 8, background: "#c9a84c", border: "none", color: "#080812", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 700, padding: "13px", borderRadius: 10, cursor: "pointer" }}>
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
 export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinnersChange, onRoundsChange }) {
   const [qualifiers, setQualifiers] = useState({});
   const [thirdPlaces, setThirdPlaces] = useState({});
@@ -103,6 +158,7 @@ export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinne
   const [rounds, setRounds] = useState(null);
   const [activeRound, setActiveRound] = useState(0);
   const [loaded, setLoaded] = useState(false);
+const [showSummary, setShowSummary] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -164,20 +220,24 @@ export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinne
   }
 
   function pickWinner(roundIdx, matchIdx, team) {
-    if (!team || !rounds) return;
-    const matchId = rounds[roundIdx][matchIdx].id;
-    const newWinners = { ...winners, [matchId]: team };
-    updateWinners(newWinners);
-    if (roundIdx < 4) {
-      const nextMatchIdx = Math.floor(matchIdx / 2);
-      const isHome = matchIdx % 2 === 0;
-      const newRounds = { ...rounds };
-      const next = [...newRounds[roundIdx + 1]];
-      next[nextMatchIdx] = { ...next[nextMatchIdx], [isHome ? "home" : "away"]: team };
-      newRounds[roundIdx + 1] = next;
-      updateRounds(newRounds);
-    }
+  if (!team || !rounds) return;
+  const matchId = rounds[roundIdx][matchIdx].id;
+  const newWinners = { ...winners, [matchId]: team };
+  updateWinners(newWinners);
+  if (roundIdx < 4) {
+    const nextMatchIdx = Math.floor(matchIdx / 2);
+    const isHome = matchIdx % 2 === 0;
+    const newRounds = { ...rounds };
+    const next = [...newRounds[roundIdx + 1]];
+    next[nextMatchIdx] = { ...next[nextMatchIdx], [isHome ? "home" : "away"]: team };
+    newRounds[roundIdx + 1] = next;
+    updateRounds(newRounds);
   }
+  // Show summary when Final winner is picked
+  if (roundIdx === 4) {
+    setTimeout(() => setShowSummary(true), 400);
+  }
+}
 
   if (!loaded || !rounds) return (
     <div style={{ minHeight: "100vh", background: "#080812", display: "flex", alignItems: "center", justifyContent: "center", color: "#c9a84c", fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: 3 }}>
@@ -302,15 +362,24 @@ export default function Bracket({ onBack, bracketWinners, bracketRounds, onWinne
         </div>
 
         {activeRound === 4 && champion && (
-          <div style={{ marginTop: 32, textAlign: "center", padding: 40, background: "linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.04))", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 20 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🏆</div>
-            <div style={{ fontSize: 11, color: "rgba(201,168,76,0.6)", letterSpacing: 3, fontWeight: 700, marginBottom: 8 }}>WORLD CUP 2026 CHAMPION</div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-              <Flag team={champion} size={32} />
-              <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 48, color: "#c9a84c", letterSpacing: 2 }}>{champion}</div>
-            </div>
-          </div>
-        )}
+  <div style={{ marginTop: 32, textAlign: "center", padding: 40, background: "linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.04))", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 20 }}>
+    <div style={{ fontSize: 48, marginBottom: 12 }}>🏆</div>
+    <div style={{ fontSize: 11, color: "rgba(201,168,76,0.6)", letterSpacing: 3, fontWeight: 700, marginBottom: 8 }}>WORLD CUP 2026 CHAMPION</div>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+      <Flag team={champion} size={32} />
+      <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 48, color: "#c9a84c", letterSpacing: 2 }}>{champion}</div>
+    </div>
+  </div>
+)}
+
+{showSummary && champion && (
+  <BracketSummary
+    rounds={rounds}
+    winners={winners}
+    champion={champion}
+    onClose={() => setShowSummary(false)}
+  />
+)}
       </div>
     </div>
   );

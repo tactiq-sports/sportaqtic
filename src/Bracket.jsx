@@ -19,7 +19,7 @@ const GROUPS = {
 const FLAG_CODES = {
   "Mexico": "mx", "South Africa": "za", "South Korea": "kr", "Czechia": "cz",
   "Canada": "ca", "Bosnia and Herzegovina": "ba", "Qatar": "qa", "Switzerland": "ch",
-  "Brazil": "br", "Morocco": "ma", "Haiti": "ht", "Scotland": "gb",
+  "Brazil": "br", "Morocco": "ma", "Haiti": "ht", "Scotland": "gb-sct",
   "USA": "us", "Paraguay": "py", "Australia": "au", "Türkiye": "tr",
   "Germany": "de", "Curaçao": "cw", "Ivory Coast": "ci", "Ecuador": "ec",
   "Netherlands": "nl", "Japan": "jp", "Sweden": "se", "Tunisia": "tn",
@@ -36,7 +36,9 @@ function Flag({ team, size = 14 }) {
   if (!code) return null;
   return (
     <img
-      src={`https://flagcdn.com/32x24/${code}.png`}
+      src={code === "gb-sct"
+  ? "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Flag_of_Scotland.svg/32px-Flag_of_Scotland.svg.png"
+  : `https://flagcdn.com/32x24/${code}.png`}
       alt={team}
       style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }}
       onError={e => { e.target.style.display = "none"; }}
@@ -184,7 +186,11 @@ function BracketShareModal({ bracket, winners, champion, onClose }) {
       await Promise.all(allTeams.map(async team => {
         const code = FLAG_CODES[team];
         if (!code) return;
-        const b64 = await toBase64(`https://flagcdn.com/32x24/${code}.png`);
+        const b64 = await toBase64(
+  code === "gb-sct"
+    ? "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Flag_of_Scotland.svg/32px-Flag_of_Scotland.svg.png"
+    : `https://flagcdn.com/32x24/${code}.png`
+);
         if (b64) cache[team] = b64;
       }));
       setFlagCache(cache);

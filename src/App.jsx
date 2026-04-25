@@ -51,16 +51,14 @@ export default function App() {
     />
   );
   if (page === "bracket") return (
-    <Bracket
-      onBack={() => navigate("home")}
-      qualifiers={qualifiers}
-      thirdPlaces={thirdPlaces}
-      bracketWinners={bracketWinners}
-      bracketRounds={bracketRounds}
-      onWinnersChange={setBracketWinners}
-      onRoundsChange={setBracketRounds}
-    />
-  );
+  <Bracket
+    onBack={() => navigate("home")}
+    bracketWinners={bracketWinners}
+    bracketRounds={bracketRounds}
+    onWinnersChange={setBracketWinners}
+    onRoundsChange={setBracketRounds}
+  />
+);
   if (page === "worldcup") return <WorldCup onBack={() => navigate("home")} onNavigate={navigate} />;
   if (page === "profile") return <Profile onBack={() => navigate("home")} onNavigate={navigate} user={user} onLogout={() => { supabase.auth.signOut(); navigate("home"); }} />;
   return <Homepage onNavigate={navigate} user={user} onLogout={() => { supabase.auth.signOut(); navigate("home"); }} />;

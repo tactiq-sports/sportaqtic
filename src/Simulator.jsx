@@ -35,7 +35,8 @@ const FLAG_CODES = {
 function Flag({ team, size = 16 }) {
   const code = FLAG_CODES[team];
   if (!code) return null;
-  return <img src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`} alt={team} style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />;
+  const w = Math.round(size * 1.5);
+  return <img src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${code}.svg`} alt={team} style={{ width: w, height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />;
 }
 
 function Logo({ size = 22 }) {
@@ -92,15 +93,7 @@ function FootballBackground() {
   );
 }
 
-function getMatches(teams) {
-  const m = [];
-  for (let i = 0; i < teams.length; i++)
-    for (let j = i + 1; j < teams.length; j++)
-      m.push({ home: teams[i], away: teams[j], homeScore: null, awayScore: null });
-  return m;
-}
-
-function calcStandings(teams, matches) {
+function calcStandingsFromMatches(teams, matches) {
   const t = {};
   teams.forEach(n => t[n] = { team: n, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 });
   matches.forEach(({ home, away, homeScore, awayScore }) => {
@@ -112,6 +105,18 @@ function calcStandings(teams, matches) {
     else { h.d++; h.pts++; a.d++; a.pts++; }
   });
   return Object.values(t).sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
+}
+
+function calcStandings(teams, matches) {
+  return calcStandingsFromMatches(teams, matches);
+}
+
+function getMatches(teams) {
+  const m = [];
+  for (let i = 0; i < teams.length; i++)
+    for (let j = i + 1; j < teams.length; j++)
+      m.push({ home: teams[i], away: teams[j], homeScore: null, awayScore: null });
+  return m;
 }
 
 function ScoreInput({ value, onChange }) {
@@ -129,18 +134,14 @@ function GroupCard({ groupId, teams, onQualify, onMatchesChange, savedMatches })
   const [tab, setTab] = useState("matches");
 
   useEffect(() => {
-    if (savedMatches) {
-      setMatches(savedMatches);
-    }
+    if (savedMatches) setMatches(savedMatches);
   }, [savedMatches]);
 
   const standings = calcStandings(teams, matches);
   const allPlayed = matches.every(m => m.homeScore !== null && m.awayScore !== null);
 
   useEffect(() => {
-    if (allPlayed) {
-      onQualify(groupId, standings[0].team, standings[1].team, standings);
-    }
+    if (allPlayed) onQualify(groupId, standings[0].team, standings[1].team, standings);
   }, [matches]);
 
   function upd(i, f, v) {
@@ -237,12 +238,24 @@ export default function Simulator({ onBack, onQualify, onThirdPlace, onGoBracket
             setQualifiers(saved.qualifiers);
             if (onQualify) onQualify(saved.qualifiers);
           }
-          if (saved.matches) setAllMatches(saved.matches);
-          if (saved.champion) setChampion(saved.champion);
-          if (saved.thirdPlaces) {
-            setThirdPlaces(saved.thirdPlaces);
-            if (onThirdPlace) onThirdPlace(saved.thirdPlaces);
+          if (saved.matches) {
+            setAllMatches(saved.matches);
+            // Recalculate thirdPlaces from saved matches
+            const recalculated = {};
+            Object.keys(GROUPS).forEach(groupId => {
+              const groupMatches = saved.matches[groupId];
+              if (!groupMatches) return;
+              const allPlayed = groupMatches.every(m => m.homeScore !== null && m.awayScore !== null);
+              if (!allPlayed) return;
+              const standings = calcStandingsFromMatches(GROUPS[groupId], groupMatches);
+              if (standings[2]) {
+                recalculated[groupId] = { team: standings[2].team, pts: standings[2].pts, gf: standings[2].gf, ga: standings[2].ga };
+              }
+            });
+            setThirdPlaces(recalculated);
+            if (onThirdPlace) onThirdPlace(recalculated);
           }
+          if (saved.champion) setChampion(saved.champion);
         }
       }
       setLoaded(true);

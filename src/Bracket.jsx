@@ -34,12 +34,9 @@ const FLAG_CODES = {
 function Flag({ team, size = 14 }) {
   const code = FLAG_CODES[team];
   if (!code) return null;
-  const url = team === "Scotland"
-    ? "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Flag_of_Scotland.svg/32px-Flag_of_Scotland.svg.png"
-    : `https://flagcdn.com/32x24/${code}.png`;
   return (
     <img
-      src={url}
+      src={`https://flagcdn.com/32x24/${code}.png`}
       alt={team}
       style={{ width: Math.round(size * 1.5), height: size, borderRadius: 2, objectFit: "cover", flexShrink: 0 }}
       onError={e => { e.target.style.display = "none"; }}
@@ -161,9 +158,9 @@ function BracketColumn({ matches, winners, onPick }) {
     </div>
   );
 }
+
 function BracketShareModal({ bracket, winners, champion, onClose }) {
   const canvasRef = useRef(null);
-  const [rendered, setRendered] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -177,61 +174,38 @@ function BracketShareModal({ bracket, winners, champion, onClose }) {
     ctx.fillStyle = "#0d0d1a";
     ctx.fillRect(0, 0, W, H);
 
-    // Grid lines
-    ctx.strokeStyle = "rgba(201,168,76,0.05)";
+    // Grid
+    ctx.strokeStyle = "rgba(201,168,76,0.04)";
     ctx.lineWidth = 1;
     for (let x = 0; x < W; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
     for (let y = 0; y < H; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
 
     // Header
     ctx.fillStyle = "#c9a84c";
-    ctx.font = "bold 28px 'Arial'";
+    ctx.font = "bold 24px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("WORLD CUP 2026 — MY BRACKET", W / 2, 36);
-    ctx.fillStyle = "rgba(255,255,255,0.3)";
-    ctx.font = "11px Arial";
-    ctx.fillText("GETSPORTACTIQ.COM", W / 2, 54);
+    ctx.fillText("FIFA WORLD CUP 2026 — MY BRACKET", W / 2, 34);
+    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.font = "10px Arial";
+    ctx.fillText("GETSPORTACTIQ.COM", W / 2, 50);
 
     // Round labels
-    const rounds = ["R32", "R16", "QF", "SF", "FINAL", "SF", "QF", "R16", "R32"];
+    const colLabels = ["R32","R16","QF","SF","FINAL","SF","QF","R16","R32"];
     const colW = W / 9;
-    ctx.fillStyle = "rgba(201,168,76,0.6)";
-    ctx.font = "bold 10px Arial";
-    rounds.forEach((r, i) => {
+    ctx.font = "bold 9px Arial";
+    colLabels.forEach((r, i) => {
+      ctx.fillStyle = i === 4 ? "#c9a84c" : "rgba(201,168,76,0.5)";
       ctx.textAlign = "center";
-      ctx.fillText(r, colW * i + colW / 2, 72);
+      ctx.fillText(r, colW * i + colW / 2, 66);
     });
 
-    // Draw a match box
-    function drawMatch(x, y, w, h, home, away, winnerId, matchId) {
-      const winner = winners[matchId];
-      const boxH = (h - 4) / 2;
+    const startY = 76;
+    const endY = H - 30;
+    const usableH = endY - startY;
+    const matchW = colW - 10;
+    const pad = 5;
 
-      // Home slot
-      ctx.fillStyle = winner === home ? "rgba(201,168,76,0.25)" : "rgba(255,255,255,0.04)";
-      ctx.strokeStyle = winner === home ? "rgba(201,168,76,0.6)" : "rgba(255,255,255,0.12)";
-      ctx.lineWidth = 1;
-      roundRect(ctx, x, y, w, boxH, 3);
-      ctx.fill(); ctx.stroke();
-
-      // Away slot
-      ctx.fillStyle = winner === away ? "rgba(201,168,76,0.25)" : "rgba(255,255,255,0.04)";
-      ctx.strokeStyle = winner === away ? "rgba(201,168,76,0.6)" : "rgba(255,255,255,0.12)";
-      roundRect(ctx, x, y + boxH + 4, w, boxH, 3);
-      ctx.fill(); ctx.stroke();
-
-      // Text
-      ctx.font = `${winner === home ? "bold " : ""}9px Arial`;
-      ctx.fillStyle = winner === home ? "#c9a84c" : home ? "#fff" : "rgba(255,255,255,0.2)";
-      ctx.textAlign = "left";
-      ctx.fillText(home ? (home.length > 12 ? home.slice(0, 11) + "…" : home) : "TBD", x + 5, y + boxH - 3);
-
-      ctx.font = `${winner === away ? "bold " : ""}9px Arial`;
-      ctx.fillStyle = winner === away ? "#c9a84c" : away ? "#fff" : "rgba(255,255,255,0.2)";
-      ctx.fillText(away ? (away.length > 12 ? away.slice(0, 11) + "…" : away) : "TBD", x + 5, y + boxH + 4 + boxH - 3);
-    }
-
-    function roundRect(ctx, x, y, w, h, r) {
+    function roundRect(x, y, w, h, r) {
       ctx.beginPath();
       ctx.moveTo(x + r, y);
       ctx.lineTo(x + w - r, y);
@@ -245,93 +219,133 @@ function BracketShareModal({ bracket, winners, champion, onClose }) {
       ctx.closePath();
     }
 
-    // Draw connector line
-    function drawConnector(x1, y1, x2, y2) {
-      ctx.strokeStyle = "rgba(201,168,76,0.2)";
+    function drawTeamSlot(x, y, w, h, team, isWinner, isLoser) {
+      ctx.globalAlpha = isLoser ? 0.3 : 1;
+      ctx.fillStyle = isWinner ? "rgba(201,168,76,0.25)" : "rgba(255,255,255,0.04)";
+      ctx.strokeStyle = isWinner ? "rgba(201,168,76,0.6)" : "rgba(255,255,255,0.12)";
+      ctx.lineWidth = 1;
+      roundRect(x, y, w, h, 3);
+      ctx.fill(); ctx.stroke();
+      ctx.globalAlpha = isLoser ? 0.3 : 1;
+      ctx.fillStyle = isWinner ? "#c9a84c" : team ? "#fff" : "rgba(255,255,255,0.2)";
+      ctx.font = `${isWinner ? "bold " : ""}9px Arial`;
+      ctx.textAlign = "left";
+      const label = team ? (team.length > 13 ? team.slice(0, 12) + "…" : team) : "TBD";
+      ctx.fillText(label, x + 5, y + h - 4);
+      ctx.globalAlpha = 1;
+    }
+
+    function drawMatch(x, y, w, totalH, match) {
+      const slotH = (totalH - 4) / 2;
+      const winner = winners[match.id];
+      drawTeamSlot(x, y, w, slotH, match.home, winner === match.home, winner && winner !== match.home);
+      drawTeamSlot(x, y + slotH + 4, w, slotH, match.away, winner === match.away, winner && winner !== match.away);
+    }
+
+    function drawConnector(x1, midY1, x2, midY2) {
+      const mx = (x1 + x2) / 2;
+      ctx.strokeStyle = "rgba(201,168,76,0.18)";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x1 + (x2 - x1) / 2, y1);
-      ctx.lineTo(x1 + (x2 - x1) / 2, y2);
-      ctx.lineTo(x2, y2);
+      ctx.moveTo(x1, midY1);
+      ctx.lineTo(mx, midY1);
+      ctx.lineTo(mx, midY2);
+      ctx.lineTo(x2, midY2);
       ctx.stroke();
     }
 
-    const startY = 85;
-    const endY = H - 20;
-    const usableH = endY - startY;
-    const matchW = colW - 8;
-    const pad = 4;
+    // LEFT SIDE: cols 0-3 = R32, R16, QF, SF
+    const leftRounds = [
+      { key: "r32", slice: [0, 8] },
+      { key: "r16", slice: [0, 4] },
+      { key: "qf", slice: [0, 2] },
+      { key: "sf", slice: [0, 1] },
+    ];
 
-    // Draw all rounds
-    const roundKeys = ["r32", "r16", "qf", "sf"];
-    const leftCols = [0, 1, 2, 3];
-    const rightCols = [8, 7, 6, 5];
-
-    leftCols.forEach((col, ri) => {
-      const roundKey = roundKeys[ri];
-      const matches = bracket[roundKey].slice(0, [8, 4, 2, 1][ri]);
+    leftRounds.forEach(({ key, slice }, ri) => {
+      const matches = bracket[key].slice(...slice);
       const count = matches.length;
       const slotH = usableH / count;
+      const matchH = slotH * 0.55;
+      const col = ri;
       matches.forEach((match, mi) => {
         const x = col * colW + pad;
-        const y = startY + mi * slotH + slotH * 0.2;
-        const mh = slotH * 0.6;
-        drawMatch(x, y, matchW, mh, match.home, match.away, null, match.id);
-        // Connector to next round
+        const y = startY + mi * slotH + (slotH - matchH) / 2;
+        drawMatch(x, y, matchW, matchH, match);
+        // Draw connector to next round
         if (ri < 3) {
-          const nextSlotH = usableH / (count / 2);
+          const nextCount = count / 2;
+          const nextSlotH = usableH / nextCount;
           const nextMi = Math.floor(mi / 2);
-          const nextY = startY + nextMi * nextSlotH + nextSlotH * 0.2 + (nextSlotH * 0.6) / 2;
-          const cx = (col + 1) * colW + pad;
-          drawConnector(x + matchW, y + mh / 2, cx, nextY);
+          const nextMatchH = nextSlotH * 0.55;
+          const nextY = startY + nextMi * nextSlotH + (nextSlotH - nextMatchH) / 2;
+          const midY1 = y + matchH / 2;
+          const midY2 = nextY + nextMatchH / 2;
+          drawConnector(x + matchW, midY1, (col + 1) * colW + pad, midY2);
         }
       });
     });
 
-    rightCols.forEach((col, ri) => {
-      const roundKey = roundKeys[ri];
-      const matches = bracket[roundKey].slice([8, 4, 2, 1][ri], [16, 8, 4, 2][ri]);
+    // RIGHT SIDE: cols 8-5 = R32, R16, QF, SF
+    const rightRounds = [
+      { key: "r32", slice: [8, 16] },
+      { key: "r16", slice: [4, 8] },
+      { key: "qf", slice: [2, 4] },
+      { key: "sf", slice: [1, 2] },
+    ];
+
+    rightRounds.forEach(({ key, slice }, ri) => {
+      const matches = bracket[key].slice(...slice);
       const count = matches.length;
       const slotH = usableH / count;
+      const matchH = slotH * 0.55;
+      const col = 8 - ri;
       matches.forEach((match, mi) => {
         const x = col * colW + pad;
-        const y = startY + mi * slotH + slotH * 0.2;
-        const mh = slotH * 0.6;
-        drawMatch(x, y, matchW, mh, match.home, match.away, null, match.id);
+        const y = startY + mi * slotH + (slotH - matchH) / 2;
+        drawMatch(x, y, matchW, matchH, match);
         if (ri < 3) {
-          const nextSlotH = usableH / (count / 2);
+          const nextCount = count / 2;
+          const nextSlotH = usableH / nextCount;
           const nextMi = Math.floor(mi / 2);
-          const nextY = startY + nextMi * nextSlotH + nextSlotH * 0.2 + (nextSlotH * 0.6) / 2;
-          const nextCol = rightCols[ri + 1];
-          const cx = nextCol * colW + matchW + pad;
-          drawConnector(x, y + mh / 2, cx + matchW, nextY);
+          const nextMatchH = nextSlotH * 0.55;
+          const nextY = startY + nextMi * nextSlotH + (nextSlotH - nextMatchH) / 2;
+          const midY1 = y + matchH / 2;
+          const midY2 = nextY + nextMatchH / 2;
+          const nextCol = 8 - ri - 1;
+          drawConnector(x, midY1, nextCol * colW + matchW + pad, midY2);
         }
       });
     });
 
-    // Final
+    // FINAL - center col 4
     const finalX = 4 * colW + pad;
-    const finalY = startY + usableH / 2 - 30;
-    drawMatch(finalX, finalY, matchW, 60, bracket.final[0].home, bracket.final[0].away, null, "final");
+    const finalMatchH = 60;
+    const finalY = startY + usableH / 2 - finalMatchH / 2;
+    drawMatch(finalX, finalY, matchW, finalMatchH, bracket.final[0]);
 
-    // Connect SF to Final
-    const sfSlotH = usableH / 1;
-    const leftSFY = startY + sfSlotH * 0.2 + (sfSlotH * 0.6) / 2;
-    drawConnector(3 * colW + matchW + pad, leftSFY, finalX, finalY + 30);
-    const rightSFX = 5 * colW + pad;
-    drawConnector(rightSFX + matchW, leftSFY, finalX + matchW, finalY + 30);
+    // Connect left SF to final
+    const leftSFMatch = bracket.sf[0];
+    const leftSFSlotH = usableH;
+    const leftSFMatchH = leftSFSlotH * 0.55;
+    const leftSFY = startY + (leftSFSlotH - leftSFMatchH) / 2;
+    drawConnector(3 * colW + matchW + pad, leftSFY + leftSFMatchH / 2, finalX, finalY + finalMatchH / 2);
 
-    // Champion
+    // Connect right SF to final
+    const rightSFSlotH = usableH;
+    const rightSFMatchH = rightSFSlotH * 0.55;
+    const rightSFY = startY + (rightSFSlotH - rightSFMatchH) / 2;
+    drawConnector(5 * colW + pad, rightSFY + rightSFMatchH / 2, finalX + matchW, finalY + finalMatchH / 2);
+
+    // Champion text
     if (champion) {
       ctx.fillStyle = "#c9a84c";
-      ctx.font = "bold 14px Arial";
+      ctx.font = "bold 16px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("🏆 " + champion, W / 2, finalY + 80);
+      ctx.fillText("🏆  " + champion + "  🏆", W / 2, finalY + finalMatchH + 26);
     }
 
-    setRendered(true);
-  }, []);
+  }, [bracket, winners, champion]);
 
   function download() {
     const canvas = canvasRef.current;
@@ -342,10 +356,10 @@ function BracketShareModal({ bracket, winners, champion, onClose }) {
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(8px)" }}
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(8px)" }}
       onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: "95vw", maxHeight: "90vh" }}>
-        <canvas ref={canvasRef} style={{ borderRadius: 12, border: "1px solid rgba(201,168,76,0.3)", maxWidth: "100%", height: "auto" }} />
+      <div onClick={e => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: "95vw" }}>
+        <canvas ref={canvasRef} style={{ borderRadius: 12, border: "1px solid rgba(201,168,76,0.3)", maxWidth: "100%", height: "auto", display: "block" }} />
         <div style={{ display: "flex", gap: 10 }}>
           <button onClick={download}
             style={{ flex: 1, background: "#c9a84c", border: "none", color: "#0d0d1a", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "13px", borderRadius: 10, cursor: "pointer" }}>
@@ -360,6 +374,7 @@ function BracketShareModal({ bracket, winners, champion, onClose }) {
     </div>
   );
 }
+
 export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
   const [qualifiers, setQualifiers] = useState({});
   const [thirdPlaces, setThirdPlaces] = useState({});
@@ -541,7 +556,6 @@ export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
           <BracketColumn matches={leftQF} winners={winners} onPick={(i, t) => pickWinner("qf", i, t)} />
           <BracketColumn matches={leftSF} winners={winners} onPick={(i, t) => pickWinner("sf", i, t)} />
 
-          {/* FINAL */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6 }}>
             <MatchBox
               match={bracket.final[0]}
@@ -602,76 +616,14 @@ export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
         </div>
       )}
 
-      {/* Share modal */}
-{showShareBracket && (
-  <BracketShareModal
-    bracket={bracket}
-    winners={winners}
-    champion={champion}
-    onClose={() => setShowShareBracket(false)}
-  />
-)}
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(8px)" }}
-          onClick={() => setShowShareBracket(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: "#080812", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 20, padding: 28, maxWidth: 600, width: "100%", maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: 3, color: "#c9a84c", marginBottom: 20, textAlign: "center" }}>MY BRACKET PREDICTIONS</div>
-
-            <div style={{ background: "#0d0d1a", borderRadius: 12, padding: 20, marginBottom: 16, border: "1px solid rgba(201,168,76,0.2)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(201,168,76,0.2)" }}>
-                <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 20, color: "#c9a84c", letterSpacing: 2 }}>WORLD CUP 2026</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: 1 }}>GETSPORTACTIQ.COM</div>
-              </div>
-              {[
-                { label: "ROUND OF 32", matches: bracket.r32 },
-                { label: "ROUND OF 16", matches: bracket.r16 },
-                { label: "QUARTER-FINALS", matches: bracket.qf },
-                { label: "SEMI-FINALS", matches: bracket.sf },
-                { label: "🏆 CHAMPION", matches: bracket.final },
-              ].map(({ label, matches }) => {
-                const rw = matches.map(m => winners[m.id]).filter(Boolean);
-                if (rw.length === 0) return null;
-                return (
-                  <div key={label} style={{ marginBottom: 12 }}>
-                    <div style={{ fontSize: 9, color: "rgba(201,168,76,0.5)", fontWeight: 700, letterSpacing: 2, marginBottom: 6 }}>{label}</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                      {rw.map((team, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, background: label.includes("CHAMPION") ? "rgba(201,168,76,0.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${label.includes("CHAMPION") ? "rgba(201,168,76,0.4)" : "rgba(255,255,255,0.08)"}`, borderRadius: 6, padding: "4px 8px" }}>
-                          <Flag team={team} size={11} />
-                          <span style={{ fontSize: 11, fontWeight: label.includes("CHAMPION") ? 700 : 500, color: label.includes("CHAMPION") ? "#c9a84c" : "#fff" }}>{team}</span>
-                          {label.includes("CHAMPION") && <span style={{ fontSize: 12 }}>🏆</span>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => {
-                const lines = ["🏆 My World Cup 2026 Bracket!\n"];
-                [
-                  { label: "R32", matches: bracket.r32 },
-                  { label: "R16", matches: bracket.r16 },
-                  { label: "QF", matches: bracket.qf },
-                  { label: "SF", matches: bracket.sf },
-                  { label: "🏆 Champion", matches: bracket.final },
-                ].forEach(({ label, matches }) => {
-                  const rw = matches.map(m => winners[m.id]).filter(Boolean);
-                  if (rw.length > 0) lines.push(`${label}: ${rw.join(", ")}`);
-                });
-                lines.push("\nMake your predictions at getsportactiq.com");
-                navigator.clipboard.writeText(lines.join("\n"));
-              }} style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "12px", borderRadius: 10, cursor: "pointer" }}>
-                📋 Copy Text
-              </button>
-              <button onClick={() => setShowShareBracket(false)}
-                style={{ flex: 1, background: "#c9a84c", border: "none", color: "#080812", fontFamily: "inherit", fontSize: 13, fontWeight: 700, padding: "12px", borderRadius: 10, cursor: "pointer" }}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Share bracket modal */}
+      {showShareBracket && (
+        <BracketShareModal
+          bracket={bracket}
+          winners={winners}
+          champion={champion}
+          onClose={() => setShowShareBracket(false)}
+        />
       )}
     </div>
   );

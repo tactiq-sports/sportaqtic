@@ -76,22 +76,31 @@ export default function Bracket({ onBack, qualifiers: qualifiersProp = {}, third
   // Load from Supabase if no qualifiers passed from App
   useEffect(() => {
     async function load() {
-      let q = qualifiersProp;
-      let tp = thirdPlacesProp;
+  let q = qualifiersProp;
+  let tp = thirdPlacesProp;
 
-      if (Object.keys(q).length === 0) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const { data } = await supabase
-            .from("predictions")
-            .select("predictions")
-            .eq("user_id", session.user.id)
-            .single();
-          if (data?.predictions?.qualifiers) q = data.predictions.qualifiers;
-          if (data?.predictions?.thirdPlaces) tp = data.predictions.thirdPlaces;
-        }
-      }
+  if (Object.keys(q).length === 0) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const { data } = await supabase
+        .from("predictions")
+        .select("predictions")
+        .eq("user_id", session.user.id)
+        .single();
+      console.log("Loaded from Supabase:", data?.predictions);
+      if (data?.predictions?.qualifiers) q = data.predictions.qualifiers;
+      if (data?.predictions?.thirdPlaces) tp = data.predictions.thirdPlaces;
+    }
+  }
 
+  console.log("qualifiers:", q);
+  console.log("thirdPlaces:", tp);
+  setQualifiers(q);
+  setThirdPlaces(tp);
+  const r32 = buildR32(q, tp);
+  setRounds(bracketRounds || initRounds(r32));
+  setLoaded(true);
+}
       setQualifiers(q);
       setThirdPlaces(tp);
       const r32 = buildR32(q, tp);

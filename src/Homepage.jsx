@@ -214,11 +214,15 @@ export default function Homepage({ onNavigate, user, onLogout }) {
               style={{ background: "none", border: "none", color: "rgba(255,255,255,0.7)", fontFamily: "inherit", fontSize: 16, fontWeight: 500, padding: "12px 0", textAlign: "left", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>{l}</button>
           ))}
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-            <button style={{ flex: 1, background: "none", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", fontFamily: "inherit", fontSize: 14, padding: "10px", borderRadius: 8, cursor: "pointer" }}>Log in</button>
-            <button style={{ flex: 1, background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "10px", borderRadius: 8, cursor: "pointer" }}>Sign up free</button>
-          </div>
-        </div>
-      )}
+  <button onClick={() => { onNavigate("auth"); setMenuOpen(false); }} style={{ flex: 1, background: "none", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", fontFamily: "inherit", fontSize: 14, padding: "10px", borderRadius: 8, cursor: "pointer" }}>
+    {user ? user.email.split("@")[0] : "Log in"}
+  </button>
+  {!user ? (
+    <button onClick={() => { onNavigate("auth"); setMenuOpen(false); }} style={{ flex: 1, background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "10px", borderRadius: 8, cursor: "pointer" }}>Sign up free</button>
+  ) : (
+    <button onClick={() => { onLogout(); setMenuOpen(false); }} style={{ flex: 1, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", fontFamily: "inherit", fontSize: 14, padding: "10px", borderRadius: 8, cursor: "pointer" }}>Log out</button>
+  )}
+</div>
 
       {/* Hero */}
       <section style={{ padding: "40px 24px", maxWidth: 1400, margin: "0 auto", position: "relative", zIndex: 1 }}>

@@ -805,16 +805,6 @@ export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
         </div>
       )}
 
-      {showShareBracket && (
-        <BracketShareModal
-          bracket={bracket}
-          winners={winners}
-          champion={champion}
-          onClose={() => setShowShareBracket(false)}
-        />
-      )}
-    </div>
-  );
 } {roundWinners.map((team, i) => (
                     <div key={i} style={{
                       display: "flex", alignItems: "center", gap: 6,

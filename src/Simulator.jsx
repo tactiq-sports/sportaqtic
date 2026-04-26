@@ -328,7 +328,7 @@ export default function Simulator({ onBack, onQualify, onThirdPlace, onGoBracket
           <button onClick={onBack} style={{ background: "none", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontFamily: "inherit", fontSize: 12, padding: "5px 10px", borderRadius: 7, cursor: "pointer", whiteSpace: "nowrap" }}>← Home</button>
           <Logo size={18} />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "nowrap", overflow: "hidden" }}>
           {saveMsg && <span style={{ fontSize: 11, color: "#22c55e", fontWeight: 700 }}>{saveMsg}</span>}
           <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 16, color: "#c9a84c" }}>{done}/12</span>
           {["groups", "bracket"].map(v => (

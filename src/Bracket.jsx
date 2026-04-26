@@ -506,7 +506,7 @@ export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
   }
 
   if (!loaded || !bracket) return (
-    <div style={{ minHeight: "100vh", background: "#080812", display: "flex", alignItems: "center", justifyContent: "center", color: "#c9a84c", fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: 3 }}>
+    <div style={{ minHeight: "100vh", background: "#080812", fontFamily: "'DM Sans',sans-serif", color: "#fff", overflowX: "hidden" }}>
       LOADING...
     </div>
   );
@@ -542,25 +542,23 @@ export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
             <div style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", letterSpacing: 2 }}>KNOCKOUT BRACKET</div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {saveMsg && <span style={{ fontSize: 11, color: "#22c55e", fontWeight: 700 }}>{saveMsg}</span>}
-          {!user && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Log in to save</span>}
-          {champion && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 8, padding: "5px 10px" }}>
-              <span>🏆</span>
-              <Flag team={champion} size={13} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#c9a84c" }}>{champion}</span>
-            </div>
-          )}
-          <button onClick={resetBracket}
-            style={{ padding: "6px 10px", borderRadius: 7, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.1)", color: "#f87171", fontFamily: "inherit", fontSize: 10, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
-            RESET
-          </button>
-          <button onClick={() => setShowShareBracket(true)}
-            style={{ padding: "6px 12px", borderRadius: 7, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 10, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
-            SHARE 🏆
-          </button>
-        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "nowrap", overflow: "hidden" }}>
+  {saveMsg && <span style={{ fontSize: 10, color: "#22c55e", fontWeight: 700, whiteSpace: "nowrap" }}>{saveMsg}</span>}
+  {champion && (
+    <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 8, padding: "4px 8px", maxWidth: 120, overflow: "hidden" }}>
+      <span>🏆</span>
+      <span style={{ fontSize: 11, fontWeight: 700, color: "#c9a84c", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{champion}</span>
+    </div>
+  )}
+  <button onClick={resetBracket}
+    style={{ padding: "5px 8px", borderRadius: 7, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.1)", color: "#f87171", fontFamily: "inherit", fontSize: 10, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+    RESET
+  </button>
+  <button onClick={() => setShowShareBracket(true)}
+    style={{ padding: "5px 8px", borderRadius: 7, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 10, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+    SHARE
+  </button>
+</div>
       </div>
 
       <div style={{ padding: "16px 12px", position: "relative", zIndex: 1, overflowX: "auto" }}>

@@ -100,10 +100,10 @@ function useCountdown() {
 }
 
 const FEATURES = [
-  { icon: "⚽", title: "Group Stage Simulator", desc: "Predict every match across all 12 groups. Standings update live.", tag: "Live now", tagColor: G, link: true },
+  { icon: "⚽", title: "Group Stage Simulator", desc: "Predict every match across all 12 groups. Standings update live.", tag: "Live now", tagColor: G, link: true, page: "simulator" },
   { icon: "🏆", title: "Knockout Bracket", desc: "Pick winners round by round from R32 to the Final.", tag: "Live now", tagColor: G, link: true, page: "bracket" },
   { icon: "🤖", title: "AI Match Previews", desc: "AI-generated tactical breakdowns before every game.", tag: "Coming soon", tagColor: "#4b5563", link: false },
-  { icon: "👥", title: "Private Prediction Leagues", desc: "Compete with friends in a private prediction league.", tag: "Premium", tagColor: G, link: false },
+  { icon: "👥", title: "Private Prediction Leagues", desc: "Compete with friends in a private prediction league.", tag: "Coming soon", tagColor: "#4b5563", link: false },
   { icon: "📊", title: "Player Stats Tracker", desc: "Goals, assists, ratings and more for every player.", tag: "Coming soon", tagColor: "#4b5563", link: false },
   { icon: "🏀", title: "EuroLeague Analytics", desc: "AI-powered basketball analytics for European leagues.", tag: "Coming soon", tagColor: "#4b5563", link: false },
 ];
@@ -181,20 +181,20 @@ export default function Homepage({ onNavigate, user, onLogout }) {
             <span style={{ fontSize: 12, color: G, fontWeight: 700 }}>{countdown.days}D {String(countdown.hours).padStart(2,"0")}H {String(countdown.minutes).padStart(2,"0")}M</span>
           </div>
           {user ? (
-  <button onClick={() => onNavigate("profile")}
-    style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: G, fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "8px 18px", borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
-    <div style={{ width: 24, height: 24, borderRadius: "50%", background: G, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#060d0a" }}>
-      {user.email[0].toUpperCase()}
-    </div>
-    {user.email.split("@")[0]}
-  </button>
-) : (
-  <>
-    <button onClick={() => onNavigate("auth")} style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "inherit", fontSize: 14, fontWeight: 500, padding: "8px 18px", borderRadius: 8, cursor: "pointer" }}>Log in</button>
-    <button onClick={() => onNavigate("auth")} style={{ background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "8px 18px", borderRadius: 8, cursor: "pointer" }}
-      onMouseEnter={e => e.target.style.background = "#34d399"} onMouseLeave={e => e.target.style.background = G}>Sign up free</button>
-  </>
-)}
+            <button onClick={() => onNavigate("profile")}
+              style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: G, fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "8px 18px", borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 24, height: 24, borderRadius: "50%", background: G, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#060d0a" }}>
+                {user.email[0].toUpperCase()}
+              </div>
+              {user.email.split("@")[0]}
+            </button>
+          ) : (
+            <>
+              <button onClick={() => onNavigate("auth")} style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "inherit", fontSize: 14, fontWeight: 500, padding: "8px 18px", borderRadius: 8, cursor: "pointer" }}>Log in</button>
+              <button onClick={() => onNavigate("auth")} style={{ background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "8px 18px", borderRadius: 8, cursor: "pointer" }}
+                onMouseEnter={e => e.target.style.background = "#34d399"} onMouseLeave={e => e.target.style.background = G}>Sign up free</button>
+            </>
+          )}
         </div>
 
         <div className="mobile-nav">
@@ -214,15 +214,32 @@ export default function Homepage({ onNavigate, user, onLogout }) {
               style={{ background: "none", border: "none", color: "rgba(255,255,255,0.7)", fontFamily: "inherit", fontSize: 16, fontWeight: 500, padding: "12px 0", textAlign: "left", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>{l}</button>
           ))}
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-  <button onClick={() => { onNavigate("auth"); setMenuOpen(false); }} style={{ flex: 1, background: "none", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", fontFamily: "inherit", fontSize: 14, padding: "10px", borderRadius: 8, cursor: "pointer" }}>
-    {user ? user.email.split("@")[0] : "Log in"}
-  </button>
-  {!user ? (
-    <button onClick={() => { onNavigate("auth"); setMenuOpen(false); }} style={{ flex: 1, background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "10px", borderRadius: 8, cursor: "pointer" }}>Sign up free</button>
-  ) : (
-    <button onClick={() => { onLogout(); setMenuOpen(false); }} style={{ flex: 1, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", fontFamily: "inherit", fontSize: 14, padding: "10px", borderRadius: 8, cursor: "pointer" }}>Log out</button>
-  )}
-</div>
+            {user ? (
+              <>
+                <button onClick={() => { onNavigate("profile"); setMenuOpen(false); }}
+                  style={{ flex: 1, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: G, fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "10px", borderRadius: 8, cursor: "pointer" }}>
+                  {user.email.split("@")[0]}
+                </button>
+                <button onClick={() => { onLogout(); setMenuOpen(false); }}
+                  style={{ flex: 1, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", fontFamily: "inherit", fontSize: 14, padding: "10px", borderRadius: 8, cursor: "pointer" }}>
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => { onNavigate("auth"); setMenuOpen(false); }}
+                  style={{ flex: 1, background: "none", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", fontFamily: "inherit", fontSize: 14, padding: "10px", borderRadius: 8, cursor: "pointer" }}>
+                  Log in
+                </button>
+                <button onClick={() => { onNavigate("auth"); setMenuOpen(false); }}
+                  style={{ flex: 1, background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "10px", borderRadius: 8, cursor: "pointer" }}>
+                  Sign up free
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Hero */}
       <section style={{ padding: "40px 24px", maxWidth: 1400, margin: "0 auto", position: "relative", zIndex: 1 }}>

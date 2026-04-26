@@ -534,7 +534,7 @@ export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
       </div>
 
       {/* Navbar */}
-      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 16px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, background: "rgba(8,8,18,0.92)", backdropFilter: "blur(16px)" }}>
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 12px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, background: "rgba(8,8,18,0.92)", backdropFilter: "blur(16px)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button onClick={onBack} style={{ background: "none", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontFamily: "inherit", fontSize: 12, padding: "5px 10px", borderRadius: 7, cursor: "pointer", whiteSpace: "nowrap" }}>← Home</button>
           <div>
@@ -561,14 +561,15 @@ export default function Bracket({ onBack, bracketWinners, onWinnersChange }) {
 </div>
       </div>
 
-      <div style={{ padding: "16px 12px", position: "relative", zIndex: 1, overflowX: "auto" }}>
+      <div style={{ padding: "16px 12px", position: "relative", zIndex: 1 }}>
         {totalGroups < 12 && (
           <div style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: "rgba(201,168,76,0.8)" }}>
             ⚠️ {totalGroups}/12 groups complete — finish the simulator to fill all bracket slots.
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 110px 1fr 1fr 1fr 1fr", gap: 4, marginBottom: 6, textAlign: "center", minWidth: 900 }}>
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", marginBottom: 6 }}>
+<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 110px 1fr 1fr 1fr 1fr", gap: 4, marginBottom: 6, textAlign: "center", minWidth: 900 }}>
           {["R32","R16","QF","SF","FINAL","SF","QF","R16","R32"].map((l, i) => (
             <div key={i} style={{ fontSize: 9, color: i === 4 ? "#c9a84c" : "rgba(201,168,76,0.5)", fontWeight: 700, letterSpacing: 1 }}>{l}</div>
           ))}

@@ -213,7 +213,6 @@ export default function Simulator({ onBack, onQualify, onThirdPlace, onGoBracket
   const [thirdPlaces, setThirdPlaces] = useState({});
   const [allMatches, setAllMatches] = useState({});
   const [view, setView] = useState("groups");
-  const [shareMsg, setShareMsg] = useState("");
   const [saveMsg, setSaveMsg] = useState("");
   const [user, setUser] = useState(null);
   const [loaded, setLoaded] = useState(false);
@@ -240,7 +239,6 @@ export default function Simulator({ onBack, onQualify, onThirdPlace, onGoBracket
           }
           if (saved.matches) {
             setAllMatches(saved.matches);
-            // Recalculate thirdPlaces from saved matches
             const recalculated = {};
             Object.keys(GROUPS).forEach(groupId => {
               const groupMatches = saved.matches[groupId];
@@ -295,13 +293,6 @@ export default function Simulator({ onBack, onQualify, onThirdPlace, onGoBracket
     setAllMatches(prev => ({ ...prev, [groupId]: matches }));
   }
 
-  function handleShare() {
-    const lines = ["🏆 My FIFA World Cup 2026 Predictions!\n", ...groupKeys.filter(g => qualifiers[g]).map(g => `Group ${g}: ${qualifiers[g].first} | ${qualifiers[g].second}`)];
-    if (champion) lines.push(`\n🥇 My Champion: ${champion}`);
-    lines.push("\nMake your predictions at getsportactiq.com");
-    navigator.clipboard.writeText(lines.join("\n")).then(() => { setShareMsg("Copied! ✓"); setTimeout(() => setShareMsg(""), 2500); });
-  }
-
   if (!loaded) return (
     <div style={{ minHeight: "100vh", background: "#080812", display: "flex", alignItems: "center", justifyContent: "center", color: "#c9a84c", fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: 3 }}>
       LOADING...
@@ -316,19 +307,23 @@ export default function Simulator({ onBack, onQualify, onThirdPlace, onGoBracket
       <style>{`
         .sim-groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;}
         .sim-bracket{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px;}
+        .sim-desktop-buttons{display:flex;align-items:center;gap:6px;}
+        .sim-mobile-bar{display:none;}
         @media(max-width:768px){
           .sim-groups{grid-template-columns:1fr!important;}
           .sim-bracket{grid-template-columns:1fr!important;}
+          .sim-desktop-buttons{display:none!important;}
+          .sim-mobile-bar{display:flex!important;}
         }
       `}</style>
 
       {/* Navbar */}
-      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 16px", height: 54, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, background: "rgba(8,8,18,0.92)", backdropFilter: "blur(16px)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <button onClick={onBack} style={{ background: "none", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontFamily: "inherit", fontSize: 12, padding: "5px 10px", borderRadius: 7, cursor: "pointer", whiteSpace: "nowrap" }}>← Home</button>
-          <Logo size={18} />
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 12px", height: 54, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, background: "rgba(8,8,18,0.92)", backdropFilter: "blur(16px)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+          <button onClick={onBack} style={{ background: "none", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.55)", fontFamily: "inherit", fontSize: 11, padding: "4px 8px", borderRadius: 7, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>← Home</button>
+          <Logo size={16} />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "nowrap", overflow: "hidden" }}>
+        <div className="sim-desktop-buttons">
           {saveMsg && <span style={{ fontSize: 11, color: "#22c55e", fontWeight: 700 }}>{saveMsg}</span>}
           <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 16, color: "#c9a84c" }}>{done}/12</span>
           {["groups", "bracket"].map(v => (
@@ -338,6 +333,10 @@ export default function Simulator({ onBack, onQualify, onThirdPlace, onGoBracket
             <button onClick={savePredictions} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #22c55e", background: "rgba(34,197,94,0.15)", color: "#22c55e", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>SAVE</button>
           )}
           <button onClick={() => setShowShareCard(true)} style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #c9a84c", background: "#c9a84c", color: "#080812", fontFamily: "inherit", fontSize: 9, fontWeight: 700, cursor: "pointer", letterSpacing: 1 }}>SHARE 🏆</button>
+        </div>
+        {/* Mobile: just show progress */}
+        <div style={{ display: "none" }} className="sim-mobile-progress">
+          <span style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 16, color: "#c9a84c" }}>{done}/12</span>
         </div>
       </div>
 
@@ -362,7 +361,7 @@ export default function Simulator({ onBack, onQualify, onThirdPlace, onGoBracket
         </div>
       )}
 
-      <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 14px", position: "relative", zIndex: 1 }}>
+      <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 14px 80px", position: "relative", zIndex: 1 }}>
         {!user && (
           <div style={{ background: "rgba(201,168,76,0.07)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: "11px 16px", marginBottom: 14, fontSize: 13, color: "rgba(201,168,76,0.8)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
             <span>💡 Log in to save your predictions</span>
@@ -372,7 +371,7 @@ export default function Simulator({ onBack, onQualify, onThirdPlace, onGoBracket
 
         {view === "groups" && (
           <div style={{ background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 10, padding: "11px 16px", marginBottom: 14, fontSize: 13, color: "rgba(147,197,253,0.8)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-            <span>🏆 Ready for the knockout stage? Go to the full bracket to pick your winners!</span>
+            <span>🏆 Ready for the knockout stage?</span>
             <button onClick={() => onGoBracket ? onGoBracket() : setView("bracket")} style={{ background: "rgba(59,130,246,0.3)", border: "1px solid rgba(59,130,246,0.4)", color: "#93c5fd", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "5px 12px", borderRadius: 6, cursor: "pointer" }}>Go to Bracket →</button>
           </div>
         )}
@@ -426,6 +425,24 @@ export default function Simulator({ onBack, onQualify, onThirdPlace, onGoBracket
             </div>
           </div>
         )}
+      </div>
+
+      {/* Mobile bottom bar */}
+      <div className="sim-mobile-bar" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(8,8,18,0.97)", borderTop: "1px solid rgba(255,255,255,0.07)", padding: "10px 14px", gap: 8, zIndex: 99 }}>
+        <button onClick={() => setView(view === "groups" ? "bracket" : "groups")}
+          style={{ flex: 1, background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)", color: "#c9a84c", fontFamily: "inherit", fontSize: 12, fontWeight: 700, padding: "10px", borderRadius: 8, cursor: "pointer" }}>
+          {view === "groups" ? `BRACKET (${done}/12)` : "GROUPS"}
+        </button>
+        {user && (
+          <button onClick={savePredictions}
+            style={{ flex: 1, background: "rgba(34,197,94,0.15)", border: "1px solid #22c55e", color: "#22c55e", fontFamily: "inherit", fontSize: 12, fontWeight: 700, padding: "10px", borderRadius: 8, cursor: "pointer" }}>
+            {saveMsg || "SAVE"}
+          </button>
+        )}
+        <button onClick={() => setShowShareCard(true)}
+          style={{ flex: 1, background: "#c9a84c", border: "none", color: "#080812", fontFamily: "inherit", fontSize: 12, fontWeight: 700, padding: "10px", borderRadius: 8, cursor: "pointer" }}>
+          SHARE 🏆
+        </button>
       </div>
 
       {showShareCard && (

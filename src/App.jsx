@@ -1,3 +1,4 @@
+import Leagues from "./Leagues.jsx";
 import { useState, useEffect } from "react";
 import Homepage from "./Homepage.jsx";
 import Simulator from "./Simulator.jsx";
@@ -11,6 +12,7 @@ export default function App() {
   const [qualifiers, setQualifiers] = useState({});
   const [thirdPlaces, setThirdPlaces] = useState({});
   const [bracketWinners, setBracketWinners] = useState({});
+  const [showLeagues, setShowLeagues] = useState(false);
   const [bracketRounds, setBracketRounds] = useState(null);
   const [user, setUser] = useState(null);
 
@@ -50,6 +52,12 @@ export default function App() {
       onGoBracket={() => navigate("bracket")}
     />
   );
+  if (page === "leagues") return (
+  <Leagues
+    onBack={() => navigate("home")}
+    user={user}
+  />
+);
   if (page === "bracket") return (
   <Bracket
     onBack={() => navigate("home")}

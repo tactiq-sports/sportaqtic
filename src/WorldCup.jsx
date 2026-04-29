@@ -15,6 +15,7 @@ const FLAG_CODES = {
   "Argentina": "ar", "Algeria": "dz", "Austria": "at", "Jordan": "jo",
   "Portugal": "pt", "DR Congo": "cd", "Uzbekistan": "uz", "Colombia": "co",
   "England": "gb", "Croatia": "hr", "Ghana": "gh", "Panama": "pa",
+"Italy": "it", "Czechoslovakia": "cz", "Hungary": "hu", "Sweden": "se",
 };
 
 const GROUPS = {

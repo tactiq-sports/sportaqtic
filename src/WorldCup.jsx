@@ -292,7 +292,7 @@ export default function WorldCup({ onBack, onNavigate }) {
         {tab === "overview" && (
           <div>
             {/* Hero stats */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12, marginBottom: 28 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 20 }}>
               {[
                 { icon: "🏆", label: "Edition", value: "23rd" },
                 { icon: "🌍", label: "Hosts", value: "USA / CAN / MEX" },
@@ -364,17 +364,17 @@ export default function WorldCup({ onBack, onNavigate }) {
             </div>
 
             <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: 2, color: gold }}>GROUP {selectedGroup}</div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  {GROUPS[selectedGroup].teams.map(t => (
-                    <div key={t} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.05)", borderRadius: 6, padding: "3px 8px" }}>
-                      <Flag team={t} size={12} />
-                      <span style={{ fontSize: 11, fontWeight: 600 }}>{t}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <div style={{ marginBottom: 16 }}>
+  <div style={{ fontFamily: "'Bebas Neue',cursive", fontSize: 24, letterSpacing: 2, color: gold, marginBottom: 8 }}>GROUP {selectedGroup}</div>
+  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+    {GROUPS[selectedGroup].teams.map(t => (
+      <div key={t} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.05)", borderRadius: 6, padding: "3px 8px" }}>
+        <Flag team={t} size={12} />
+        <span style={{ fontSize: 11, fontWeight: 600 }}>{t}</span>
+      </div>
+    ))}
+  </div>
+</div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {GROUPS[selectedGroup].matches.map((m, i) => (

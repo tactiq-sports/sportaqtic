@@ -104,7 +104,7 @@ const FEATURES = [
   { icon: "⚽", title: "Group Stage Simulator", desc: "Predict every match across all 12 groups. Standings update live.", tag: "Live now", tagColor: G, link: true, page: "simulator" },
   { icon: "🏆", title: "Knockout Bracket", desc: "Pick winners round by round from R32 to the Final.", tag: "Live now", tagColor: G, link: true, page: "bracket" },
   { icon: "🤖", title: "AI Match Previews", desc: "AI-generated tactical breakdowns before every game.", tag: "Coming soon", tagColor: "#4b5563", link: false },
-  { icon: "👥", title: "Private Prediction Leagues", desc: "Compete with friends in a private prediction league.", tag: "Coming soon", tagColor: "#4b5563", link: false },
+  { icon: "👥", title: "Private Prediction Leagues", desc: "Compete with friends in a private prediction league.", tag: "Live now", tagColor: G, link: true, page: "leagues" },
   { icon: "📊", title: "Player Stats Tracker", desc: "Goals, assists, ratings and more for every player.", tag: "Coming soon", tagColor: "#4b5563", link: false },
   { icon: "🏀", title: "EuroLeague Analytics", desc: "AI-powered basketball analytics for European leagues.", tag: "Coming soon", tagColor: "#4b5563", link: false },
 ];
@@ -265,12 +265,14 @@ export default function Homepage({ onNavigate, user, onLogout }) {
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <button onClick={() => onNavigate("simulator")}
-                style={{ background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 15, fontWeight: 700, padding: "14px 24px", borderRadius: 12, cursor: "pointer", boxShadow: "0 0 30px rgba(16,185,129,0.3)", flex: 1, minWidth: 160 }}
-                onMouseEnter={e => e.target.style.background = "#34d399"} onMouseLeave={e => e.target.style.background = G}
-              >⚽ Try the Simulator</button>
-              <button onClick={() => onNavigate("worldcup")}
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 600, padding: "14px 24px", borderRadius: 12, cursor: "pointer", flex: 1, minWidth: 140 }}
-              >World Cup Hub →</button>
+  style={{ background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 15, fontWeight: 700, padding: "14px 24px", borderRadius: 12, cursor: "pointer", boxShadow: "0 0 30px rgba(16,185,129,0.3)", flex: 1, minWidth: 160 }}
+>⚽ Try the Simulator</button>
+<button onClick={() => onNavigate("worldcup")}
+  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 600, padding: "14px 24px", borderRadius: 12, cursor: "pointer", flex: 1, minWidth: 140 }}
+>World Cup Hub →</button>
+<button onClick={() => onNavigate("leagues")}
+  style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: "#10b981", fontFamily: "inherit", fontSize: 15, fontWeight: 600, padding: "14px 24px", borderRadius: 12, cursor: "pointer", flex: 1, minWidth: 140 }}
+>👥 Leagues</button>
             </div>
             <div className="hero-social">
               <div style={{ display: "flex" }}>

@@ -133,7 +133,7 @@ const url = `https://flagcdn.com/32x24/${code.toLowerCase()}.png`;
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(8px)" }}
       onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, maxWidth: 600, width: "100%" }}>
+      <div onClick={e => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, maxWidth: 600, width: "100%", overflowY: "auto", maxHeight: "90vh" }}>
 
         {/* Card to be captured */}
         <div ref={cardRef} style={{ background: "#0d0d1a", borderRadius: 16, padding: 24, width: "100%", fontFamily: "'Bebas Neue', cursive", overflowX: "hidden" }}>

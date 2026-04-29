@@ -292,7 +292,7 @@ export default function WorldCup({ onBack, onNavigate }) {
         {tab === "overview" && (
           <div>
             {/* Hero stats */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 20 }}>
               {[
                 { icon: "🏆", label: "Edition", value: "23rd" },
                 { icon: "🌍", label: "Hosts", value: "USA / CAN / MEX" },

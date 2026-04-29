@@ -1,7 +1,6 @@
-const NAV_LINKS = ["World Cup", "Leagues", "Basketball", "Fantasy", "Analytics"];
 import { useState, useEffect, useRef } from "react";
 
-const NAV_LINKS = ["World Cup", "Basketball", "Fantasy", "Analytics"];
+const NAV_LINKS = ["World Cup", "Leagues", "Basketball", "Fantasy", "Analytics"];
 const G = "#10b981";
 const LAUNCH_DATE = new Date("2026-06-11T15:00:00Z");
 
@@ -103,8 +102,8 @@ function useCountdown() {
 const FEATURES = [
   { icon: "⚽", title: "Group Stage Simulator", desc: "Predict every match across all 12 groups. Standings update live.", tag: "Live now", tagColor: G, link: true, page: "simulator" },
   { icon: "🏆", title: "Knockout Bracket", desc: "Pick winners round by round from R32 to the Final.", tag: "Live now", tagColor: G, link: true, page: "bracket" },
+  { icon: "👥", title: "Private Prediction Leagues", desc: "Create a league, invite friends with a code and see who predicts best.", tag: "Live now", tagColor: G, link: true, page: "leagues" },
   { icon: "🤖", title: "AI Match Previews", desc: "AI-generated tactical breakdowns before every game.", tag: "Coming soon", tagColor: "#4b5563", link: false },
-  { icon: "👥", title: "Private Prediction Leagues", desc: "Compete with friends in a private prediction league.", tag: "Live now", tagColor: G, link: true, page: "leagues" },
   { icon: "📊", title: "Player Stats Tracker", desc: "Goals, assists, ratings and more for every player.", tag: "Coming soon", tagColor: "#4b5563", link: false },
   { icon: "🏀", title: "EuroLeague Analytics", desc: "AI-powered basketball analytics for European leagues.", tag: "Coming soon", tagColor: "#4b5563", link: false },
 ];
@@ -170,12 +169,12 @@ export default function Homepage({ onNavigate, user, onLogout }) {
 
         <div className="nav-links">
           {NAV_LINKS.map(l => (
-  <button key={l} onClick={() => {
-    if (l === "World Cup") onNavigate("worldcup");
-    if (l === "Leagues") onNavigate("leagues");
-  }}
-              style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontFamily: "inherit", fontSize: 14, fontWeight: 500, padding: "6px 14px", borderRadius: 8, cursor: "pointer" }}
-              onMouseEnter={e => e.target.style.color = "#fff"} onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.4)"}>{l}</button>
+            <button key={l} onClick={() => {
+              if (l === "World Cup") onNavigate("worldcup");
+              if (l === "Leagues") onNavigate("leagues");
+            }}
+              style={{ background: "none", border: "none", color: (l === "World Cup" || l === "Leagues") ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.4)", fontFamily: "inherit", fontSize: 14, fontWeight: 500, padding: "6px 14px", borderRadius: 8, cursor: "pointer" }}
+              onMouseEnter={e => e.target.style.color = "#fff"} onMouseLeave={e => e.target.style.color = (l === "World Cup" || l === "Leagues") ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.4)"}>{l}</button>
           ))}
         </div>
 
@@ -214,11 +213,11 @@ export default function Homepage({ onNavigate, user, onLogout }) {
       {menuOpen && (
         <div style={{ position: "fixed", top: 60, left: 0, right: 0, background: "rgba(6,13,10,0.98)", borderBottom: "1px solid rgba(16,185,129,0.15)", zIndex: 99, padding: "16px 24px", display: "flex", flexDirection: "column", gap: 4 }}>
           {NAV_LINKS.map(l => (
-  <button key={l} onClick={() => {
-    if (l === "World Cup") onNavigate("worldcup");
-    if (l === "Leagues") onNavigate("leagues");
-    setMenuOpen(false);
-  }}
+            <button key={l} onClick={() => {
+              if (l === "World Cup") onNavigate("worldcup");
+              if (l === "Leagues") onNavigate("leagues");
+              setMenuOpen(false);
+            }}
               style={{ background: "none", border: "none", color: "rgba(255,255,255,0.7)", fontFamily: "inherit", fontSize: 16, fontWeight: 500, padding: "12px 0", textAlign: "left", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>{l}</button>
           ))}
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
@@ -265,14 +264,15 @@ export default function Homepage({ onNavigate, user, onLogout }) {
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <button onClick={() => onNavigate("simulator")}
-  style={{ background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 15, fontWeight: 700, padding: "14px 24px", borderRadius: 12, cursor: "pointer", boxShadow: "0 0 30px rgba(16,185,129,0.3)", flex: 1, minWidth: 160 }}
->⚽ Try the Simulator</button>
-<button onClick={() => onNavigate("worldcup")}
-  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 600, padding: "14px 24px", borderRadius: 12, cursor: "pointer", flex: 1, minWidth: 140 }}
->World Cup Hub →</button>
-<button onClick={() => onNavigate("leagues")}
-  style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: "#10b981", fontFamily: "inherit", fontSize: 15, fontWeight: 600, padding: "14px 24px", borderRadius: 12, cursor: "pointer", flex: 1, minWidth: 140 }}
->👥 Leagues</button>
+                style={{ background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 15, fontWeight: 700, padding: "14px 24px", borderRadius: 12, cursor: "pointer", boxShadow: "0 0 30px rgba(16,185,129,0.3)", flex: 1, minWidth: 160 }}
+                onMouseEnter={e => e.target.style.background = "#34d399"} onMouseLeave={e => e.target.style.background = G}
+              >⚽ Try the Simulator</button>
+              <button onClick={() => onNavigate("leagues")}
+                style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: G, fontFamily: "inherit", fontSize: 15, fontWeight: 600, padding: "14px 24px", borderRadius: 12, cursor: "pointer", flex: 1, minWidth: 140 }}
+              >👥 Leagues</button>
+              <button onClick={() => onNavigate("worldcup")}
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 600, padding: "14px 24px", borderRadius: 12, cursor: "pointer", flex: 1, minWidth: 140 }}
+              >World Cup Hub →</button>
             </div>
             <div className="hero-social">
               <div style={{ display: "flex" }}>
@@ -350,16 +350,16 @@ export default function Homepage({ onNavigate, user, onLogout }) {
           <div className="cta-inner">
             <div>
               <h2 style={{ fontFamily: "'Bebas Neue',cursive", fontSize: "clamp(28px,4vw,44px)", letterSpacing: 2, margin: "0 0 8px" }}>READY TO PREDICT THE WORLD CUP?</h2>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", margin: 0 }}>Free to use. No account needed.</p>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", margin: 0 }}>Free to use. No account needed to simulate.</p>
             </div>
             <div className="cta-buttons">
               <button onClick={() => onNavigate("simulator")}
                 style={{ background: G, border: "none", color: "#060d0a", fontFamily: "inherit", fontSize: 15, fontWeight: 700, padding: "14px 28px", borderRadius: 12, cursor: "pointer", whiteSpace: "nowrap" }}
                 onMouseEnter={e => e.target.style.background = "#34d399"} onMouseLeave={e => e.target.style.background = G}
               >Start Simulating →</button>
-              <button onClick={() => onNavigate("worldcup")}
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 12, cursor: "pointer", whiteSpace: "nowrap" }}
-              >World Cup Hub</button>
+              <button onClick={() => onNavigate("leagues")}
+                style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: G, fontFamily: "inherit", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 12, cursor: "pointer", whiteSpace: "nowrap" }}
+              >👥 Create a League</button>
             </div>
           </div>
         </div>

@@ -66,6 +66,9 @@ export default function App() {
   />
 );
   if (page === "worldcup") return <WorldCup onBack={() => navigate("home")} onNavigate={navigate} />;
-  if (page === "profile") return <Profile onBack={() => navigate("home")} onNavigate={navigate} user={user} onLogout={() => { supabase.auth.signOut(); navigate("home"); }} />;
+  if (page === "profile") {
+  if (!user) { navigate("home"); return null; }
+  return <Profile onBack={() => navigate("home")} onNavigate={navigate} user={user} onLogout={() => { supabase.auth.signOut(); navigate("home"); }} />;
+}
   return <Homepage onNavigate={navigate} user={user} onLogout={() => { supabase.auth.signOut(); navigate("home"); }} />;
 }

@@ -246,10 +246,12 @@ export default function WorldCup({ onBack, onNavigate }) {
     <div style={{ minHeight: "100vh", background: "#080812", fontFamily: "'DM Sans',sans-serif", color: "#fff", overflowX: "hidden" }}>
       <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-      <style>{`
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-        @keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-15px) rotate(5deg)}}
-      `}</style>
+     <style>{`
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-15px) rotate(5deg)}}
+  .overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:768px){.overview-grid{grid-template-columns:1fr!important;}}
+`}</style>
 
       {/* Background */}
       <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
@@ -292,7 +294,7 @@ export default function WorldCup({ onBack, onNavigate }) {
         {tab === "overview" && (
           <div>
             {/* Hero stats */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 20 }}>
+            <div className="overview-grid">
               {[
                 { icon: "🏆", label: "Edition", value: "23rd" },
                 { icon: "🌍", label: "Hosts", value: "USA / CAN / MEX" },

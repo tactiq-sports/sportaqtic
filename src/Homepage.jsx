@@ -1,3 +1,4 @@
+import { supabase } from "./supabase.js";
 import { useState, useEffect, useRef } from "react";
 
 const NAV_LINKS = ["World Cup", "Leagues", "Basketball", "Fantasy", "Analytics"];
@@ -131,6 +132,13 @@ export default function Homepage({ onNavigate, user, onLogout }) {
   const [hovered, setHovered] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const countdown = useCountdown();
+  const [username, setUsername] = useState(null);
+
+useEffect(() => {
+  if (!user) return;
+  supabase.from("profiles").select("username").eq("id", user.id).single()
+    .then(({ data }) => { if (data?.username) setUsername(data.username); });
+}, [user]);
 
   return (
     <div style={{ minHeight: "100vh", background: "#060d0a", color: "#fff", fontFamily: "'DM Sans',sans-serif", overflowX: "hidden" }}>
@@ -189,7 +197,7 @@ export default function Homepage({ onNavigate, user, onLogout }) {
               <div style={{ width: 24, height: 24, borderRadius: "50%", background: G, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#060d0a" }}>
                 {user.email[0].toUpperCase()}
               </div>
-              {user.email.split("@")[0]}
+              {username || user.email.split("@")[0]}
             </button>
           ) : (
             <>
@@ -225,7 +233,7 @@ export default function Homepage({ onNavigate, user, onLogout }) {
               <>
                 <button onClick={() => { onNavigate("profile"); setMenuOpen(false); }}
                   style={{ flex: 1, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: G, fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "10px", borderRadius: 8, cursor: "pointer" }}>
-                  {user.email.split("@")[0]}
+                  {username || user.email.split("@")[0]}
                 </button>
                 <button onClick={() => { onLogout(); setMenuOpen(false); }}
                   style={{ flex: 1, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", fontFamily: "inherit", fontSize: 14, padding: "10px", borderRadius: 8, cursor: "pointer" }}>

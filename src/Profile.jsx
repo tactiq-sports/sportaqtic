@@ -44,14 +44,16 @@ export default function Profile({ onBack, onNavigate, user, onLogout }) {
     loadProfile();
   }, [user]);
 
+  const [bracketData, setBracketData] = useState(null);
   async function loadProfile() {
     setLoading(true);
     const [{ data: prof }, { data: preds }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase.from("predictions").select("predictions").eq("user_id", user.id).single(),
+      supabase.from("predictions").select("predictions, bracket").eq("user_id", user.id).single(),
     ]);
     setProfile(prof);
     setPredictions(preds?.predictions || null);
+setBracketData(preds?.bracket || null);
     setNewUsername(prof?.username || "");
     setFavouriteTeam(prof?.favourite_team || "");
     setLoading(false);
@@ -222,9 +224,43 @@ export default function Profile({ onBack, onNavigate, user, onLogout }) {
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-        )}
+            }}
+      </div>
+
+      {/* Bracket predictions */}
+      {bracketData?.winners && Object.keys(bracketData.winners).length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontSize: 11, color: G, fontWeight: 700, letterSpacing: 2, marginBottom: 14 }}>KNOCKOUT BRACKET PICKS</div>
+          {[
+            { label: "ROUND OF 16", ids: bracketData.rounds?.r16 },
+            { label: "QUARTER-FINALS", ids: bracketData.rounds?.qf },
+            { label: "SEMI-FINALS", ids: bracketData.rounds?.sf },
+            { label: "🏆 CHAMPION", ids: bracketData.rounds?.final },
+          ].map(({ label, ids }) => {
+            if (!ids) return null;
+            const picks = ids.map(m => bracketData.winners[m.id]).filter(Boolean);
+            if (picks.length === 0) return null;
+            return (
+              <div key={label} style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 9, color: "rgba(16,185,129,0.6)", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>{label}</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {picks.map((team, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, background: label.includes("CHAMPION") ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.04)", border: `1px solid ${label.includes("CHAMPION") ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.08)"}`, borderRadius: 8, padding: "5px 10px" }}>
+                      <Flag team={team} size={13} />
+                      <span style={{ fontSize: 12, fontWeight: label.includes("CHAMPION") ? 700 : 500, color: label.includes("CHAMPION") ? G : "#fff" }}>{team}</span>
+                      {label.includes("CHAMPION") && <span>🏆</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  )}
+
+  {/* Settings tab */}
 
         {/* Settings tab */}
         {activeTab === "settings" && (

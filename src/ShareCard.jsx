@@ -136,7 +136,7 @@ const url = `https://flagcdn.com/32x24/${code.toLowerCase()}.png`;
       <div onClick={e => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, maxWidth: 600, width: "100%" }}>
 
         {/* Card to be captured */}
-        <div ref={cardRef} style={{ background: "#0d0d1a", borderRadius: 16, padding: 24, width: "100%", fontFamily: "'Bebas Neue', cursive" }}>
+        <div ref={cardRef} style={{ background: "#0d0d1a", borderRadius: 16, padding: 24, width: "100%", fontFamily: "'Bebas Neue', cursive", overflowX: "hidden" }}>
           <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap');`}</style>
 
           {/* Header */}
@@ -150,7 +150,7 @@ const url = `https://flagcdn.com/32x24/${code.toLowerCase()}.png`;
 
           {/* Groups grid */}
           {groupKeys.length > 0 ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8, marginBottom: 16 }}>
               {groupKeys.map(g => {
                 const q = qualifiers[g];
                 return (

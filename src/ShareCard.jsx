@@ -94,18 +94,30 @@ const url = `https://flagcdn.com/32x24/${code.toLowerCase()}.png`;
   }, []);
 
   async function downloadImage() {
-    if (!cardRef.current || !flagsLoaded) return;
-    setDownloading(true);
-    try {
-      const html2canvas = (await import("html2canvas")).default;
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: "#0d0d1a",
-        scale: 2,
-        useCORS: false,
-        allowTaint: false,
-        imageTimeout: 15000,
-        logging: false,
-      });
+  if (!cardRef.current) return;
+  setDownloading(true);
+  try {
+    const html2canvas = (await import("html2canvas")).default;
+    // Temporarily make card full height for capture
+    const el = cardRef.current;
+    const prevOverflow = el.style.overflow;
+    const prevMaxHeight = el.style.maxHeight;
+    el.style.overflow = "visible";
+    el.style.maxHeight = "none";
+    const canvas = await html2canvas(el, {
+      backgroundColor: "#0d0a04",
+      scale: 2,
+      useCORS: false,
+      allowTaint: false,
+      imageTimeout: 15000,
+      logging: false,
+      scrollY: -window.scrollY,
+      windowHeight: el.scrollHeight,
+      height: el.scrollHeight,
+    });
+    el.style.overflow = prevOverflow;
+    el.style.maxHeight = prevMaxHeight;
+    
       const link = document.createElement("a");
       link.download = "my-worldcup-2026-predictions.png";
       link.href = canvas.toDataURL("image/png");

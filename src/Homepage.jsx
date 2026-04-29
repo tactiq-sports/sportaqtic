@@ -1,3 +1,4 @@
+const NAV_LINKS = ["World Cup", "Leagues", "Basketball", "Fantasy", "Analytics"];
 import { useState, useEffect, useRef } from "react";
 
 const NAV_LINKS = ["World Cup", "Basketball", "Fantasy", "Analytics"];
@@ -169,7 +170,10 @@ export default function Homepage({ onNavigate, user, onLogout }) {
 
         <div className="nav-links">
           {NAV_LINKS.map(l => (
-            <button key={l} onClick={() => l === "World Cup" && onNavigate("worldcup")}
+  <button key={l} onClick={() => {
+    if (l === "World Cup") onNavigate("worldcup");
+    if (l === "Leagues") onNavigate("leagues");
+  }}
               style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontFamily: "inherit", fontSize: 14, fontWeight: 500, padding: "6px 14px", borderRadius: 8, cursor: "pointer" }}
               onMouseEnter={e => e.target.style.color = "#fff"} onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.4)"}>{l}</button>
           ))}
@@ -210,7 +214,11 @@ export default function Homepage({ onNavigate, user, onLogout }) {
       {menuOpen && (
         <div style={{ position: "fixed", top: 60, left: 0, right: 0, background: "rgba(6,13,10,0.98)", borderBottom: "1px solid rgba(16,185,129,0.15)", zIndex: 99, padding: "16px 24px", display: "flex", flexDirection: "column", gap: 4 }}>
           {NAV_LINKS.map(l => (
-            <button key={l} onClick={() => { if (l === "World Cup") onNavigate("worldcup"); setMenuOpen(false); }}
+  <button key={l} onClick={() => {
+    if (l === "World Cup") onNavigate("worldcup");
+    if (l === "Leagues") onNavigate("leagues");
+    setMenuOpen(false);
+  }}
               style={{ background: "none", border: "none", color: "rgba(255,255,255,0.7)", fontFamily: "inherit", fontSize: 16, fontWeight: 500, padding: "12px 0", textAlign: "left", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>{l}</button>
           ))}
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>

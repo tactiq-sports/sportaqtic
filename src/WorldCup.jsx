@@ -311,7 +311,7 @@ export default function WorldCup({ onBack, onNavigate }) {
               ))}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <div className="overview-grid">
               {/* Poll */}
               <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 20 }}>
                 <div style={{ fontSize: 9, color: gold, fontWeight: 700, letterSpacing: 2, marginBottom: 4 }}>POLL</div>
